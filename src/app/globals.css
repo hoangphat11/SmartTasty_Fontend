@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+:root {
+  --font-dancing-script: 'Dancing Script', cursive;
+  /*1rem = 10px*/
+  font-size: 62.5%;
+  --textColor: #2d2d2d;
+}
+
+/* * {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+} */
+
+main {
+  flex-grow: 1;
+}
+
+a {
+  text-decoration: none;
+  color: #000;
+}
+
+body {
+  font-family: var(--font-roboto), sans-serif;
+  min-height: 100vh;
+}

@@ -1,0 +1,115 @@
+.container {
+  position: relative;
+  height: 565px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  overflow: hidden;
+}
+
+.imageWrapper {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  width: 600%;
+  height: 100%;
+  animation: slideBackground 50s infinite ease-in-out;
+  transition: transform 1.5s ease-in-out;
+}
+
+.imageWrapper img {
+  width: 100vw;
+  height: 100%;
+  object-fit: cover;
+}
+
+@keyframes slideBackground {
+  0% {
+    transform: translateX(0%);
+  }
+  25% {
+    transform: translateX(-100vw);
+  }
+  50% {
+    transform: translateX(-200vw);
+  }
+  75% {
+    transform: translateX(-300vw);
+  }
+  100% {
+    transform: translateX(0%);
+  }
+}
+
+/* Overlay làm tối nền */
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.content {
+  position: relative;
+  color: white;
+}
+
+.heading {
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+.searchBar {
+  display: flex;
+  align-items: center;
+  background: white;
+  border-radius: 50px;
+  padding: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  max-width: 600px;
+  width: 100%;
+  margin-top: 20px;
+}
+
+.inputGroup {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  flex: 1;
+}
+
+.inputGroup label {
+  font-size: 12px;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.inputGroup input {
+  border: none;
+  outline: none;
+  font-size: 14px;
+  width: 100%;
+}
+
+.divider {
+  width: 1px;
+  background: #ddd;
+  height: 40px;
+}
+
+.clearBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+}
+
+.searchBtn {
+  background: orange;
+  border: none;
+  color: white;
+  padding: 10px;
+  border-radius: 50%;
+  cursor: pointer;
+}

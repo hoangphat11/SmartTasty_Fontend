@@ -1,0 +1,13 @@
+- Container:
+    - Yard: sân
+        - Area: khu vực
+            - Anchor: neo
+                - Section: phần | đội hình | tiết diện
+                    - Block: khối, Card: thẻ,
+                    - Box: hộp, Content: nội dung, Begin: bắt đầu, End : kết thúc, List,
+                            - Colum: cột,
+                            - Group: nhóm, Row: hàng
+                                - Cover: bao phủ
+                                    - Wrapper: bó sát
+                                        -  Line: đoạn
+                                            - Text: chữ

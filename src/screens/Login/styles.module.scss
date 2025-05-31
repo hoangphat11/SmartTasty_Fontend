@@ -1,0 +1,21 @@
+.loginContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  //background: url("https://raw.githubusercontent.com/lamlinhh/Travel_Web/refs/heads/vu/assets/Images/bg.webp")
+   // no-repeat center/cover;
+}
+
+.loginCard {
+  width: 400px;
+  padding: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  background: white;
+}
+
+.forgotPassword {
+    text-align: right;
+    margin-top: 10px;
+}
