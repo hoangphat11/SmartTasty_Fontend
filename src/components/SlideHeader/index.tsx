@@ -1,60 +1,71 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import "react-datepicker/dist/react-datepicker.css";
+//import "react-datepicker/dist/react-datepicker.css";
 import styles from "./styles.module.scss";
 
-const images = [
-  "https://raw.githubusercontent.com/lamlinhh/Travel_Web/refs/heads/main/assets/Images/hoian.webp",
-  "https://raw.githubusercontent.com/lamlinhh/Travel_Web/refs/heads/main/assets/Images/japan-tokyo_wpvxra.webp",
-  "https://raw.githubusercontent.com/lamlinhh/Travel_Web/refs/heads/main/assets/Images/moscow_jr5bb4.webp",
-  "https://raw.githubusercontent.com/lamlinhh/Travel_Web/refs/heads/main/assets/Images/sydney-opera-house-near-body-of-water-during-daytime-1_fbgqyc.webp",
-];
+//import anh1 from "@/assets/Image/SlideHeader/anh1.jpg";
+//import anh2 from "@/assets/Image/SlideHeader/anh2.jpg";
+//import anh3 from "@/assets/Image/SlideHeader/anh3.jpg";
+import anh4 from "@/assets/Image/SlideHeader/anh5.jpg";
+
+const images = [anh4, anh4, anh4, anh4];
 
 const Index = () => {
-  const [currentIndex, setCurrentIndex] = useState(1);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const sliderRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentIndex((prev) => prev + 1);
-    }, 5000); // 5s đổi ảnh
+      setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+    }, 5000);
 
     return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
     if (sliderRef.current) {
-      sliderRef.current.style.transition =
-        currentIndex === images.length + 1
-          ? "none"
-          : "transform 1s ease-in-out";
-      sliderRef.current.style.transform = `translateX(-${currentIndex * 100}vw)`;
-    }
-
-    if (currentIndex === images.length + 1) {
-      setTimeout(() => {
-        if (sliderRef.current) {
-          sliderRef.current.style.transition = "none";
-          sliderRef.current.style.transform = `translateX(-100vw)`;
-        }
-        setCurrentIndex(1);
-      }, 1000);
+      sliderRef.current.style.transform = `translateX(-${
+        currentIndex * 100
+      }vw)`;
+      sliderRef.current.style.transition = "transform 0.5s ease-in-out"; // Thêm hiệu ứng chuyển mượt
     }
   }, [currentIndex]);
 
   return (
     <div className={styles.container}>
       <div className={styles.imageWrapper} ref={sliderRef}>
-        <img src={images[images.length - 1]} alt="Last Clone" />{" "}
-        {/* Clone ảnh cuối */}
-        {images.map((src, index) => (
-          <img key={index} src={src} alt={`Background ${index + 1}`} />
+        {images.map((img, idx) => (
+          <img
+            key={idx}
+            src={img.src}
+            alt={`Slide ${idx + 1}`}
+            draggable={false} // tránh kéo ảnh gây khó chịu UX
+            className={styles.slideImage} // thêm class nếu cần style riêng cho img
+          />
         ))}
-        <img src={images[0]} alt="First Clone" /> {/* Clone ảnh đầu */}
       </div>
 
       <div className={styles.overlay}></div>
+
+      <div className={styles.dotWrapper}>
+        {images.map((_, idx) => (
+          <span
+            key={idx}
+            className={`${styles.dot} ${
+              idx === currentIndex ? styles.active : ""
+            }`}
+            onClick={() => setCurrentIndex(idx)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") setCurrentIndex(idx);
+            }}
+            style={{ cursor: "pointer" }}
+            aria-label={`Chuyển đến slide ${idx + 1}`}
+          />
+        ))}
+      </div>
     </div>
   );
 };

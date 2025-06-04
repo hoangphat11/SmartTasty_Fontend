@@ -8,6 +8,8 @@ import { FaUserCircle } from "react-icons/fa";
 import { BellOutlined, SearchOutlined } from "@ant-design/icons";
 import styles from "./styles.module.scss";
 import Image from "next/image";
+import { useDispatch } from "react-redux";
+import { clearUser } from "@/redux/slices/userSide";
 
 const { Option } = Select;
 
@@ -18,37 +20,55 @@ const getCookie = (name: string) => {
 
 const Header = () => {
   const pathname = usePathname();
+  const dispatch = useDispatch();
+
+  // State lưu userName lấy từ localStorage
+  const [userName, setUserName] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [language, setLanguage] = useState<"vi" | "en">("vi");
   const [showLanguagePopover, setShowLanguagePopover] = useState(false);
 
   useEffect(() => {
-    setIsLoggedIn(!!getCookie("token"));
+    // Kiểm tra token cookie
+    const token = getCookie("token");
+    setIsLoggedIn(!!token);
+
+    // Lấy user từ localStorage
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      try {
+        const userObj = JSON.parse(storedUser);
+        if (userObj.userName) {
+          setUserName(userObj.userName);
+        }
+      } catch (error) {
+        console.error("Lỗi parse user trong localStorage:", error);
+      }
+    }
   }, []);
 
   const handleLogout = () => {
     document.cookie = "token=; path=/; max-age=0";
+    dispatch(clearUser()); // Xóa user trong redux nếu có
     setIsLoggedIn(false);
+    setUserName(null);
     window.location.href = window.location.origin;
   };
 
-  // Ảnh cờ
   const flagVN =
     "https://upload.wikimedia.org/wikipedia/commons/2/21/Flag_of_Vietnam.svg";
   const flagUS =
     "https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg";
-
-  // Ảnh cờ hiện tại hiển thị trên header
   const flagSrc = language === "vi" ? flagVN : flagUS;
   const altText = language === "vi" ? "VN" : "EN";
 
-  // Nội dung popup chọn cờ: chỉ show 1 cờ đối lập
   const languageSelectContent = (
-    <div  
+    <div
       onClick={() => {
         setLanguage(language === "vi" ? "en" : "vi");
         setShowLanguagePopover(false);
       }}
+      style={{ cursor: "pointer" }}
     >
       <Image
         src={language === "vi" ? flagUS : flagVN}
@@ -56,12 +76,21 @@ const Header = () => {
         width={24}
         height={16}
       />
-      {/* <span>{language === "vi" ? "" : "Tiếng "}</span> */}
     </div>
   );
 
   const userMenu = (
     <div className={styles.popoverMenu}>
+      <div
+        style={{
+          padding: "8px 16px",
+          fontWeight: "600",
+          borderBottom: "1px solid #f0f0f0",
+          marginBottom: 8,
+        }}
+      >
+        Xin chào, {userName || "user"}
+      </div>
       <Link href="/account">
         <Button type="text">Tài khoản</Button>
       </Link>
@@ -111,7 +140,17 @@ const Header = () => {
         {/* Người dùng / Đăng nhập */}
         {isLoggedIn ? (
           <Popover content={userMenu} trigger="click" placement="bottomRight">
-            <FaUserCircle size={28} style={{ marginLeft: 16 }} />
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                marginLeft: 16,
+                cursor: "pointer",
+              }}
+            >
+              <FaUserCircle size={28} />
+              <span style={{ marginLeft: 8 }}>{userName}</span>
+            </div>
           </Popover>
         ) : (
           <div className={styles.authButtons}>

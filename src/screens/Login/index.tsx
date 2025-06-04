@@ -1,6 +1,6 @@
 "use client";
 
-import { Form, Input, Button, Card, Typography, message } from "antd";
+import { Form, Input, Button, Card, Typography } from "antd";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import axiosInstance from "@/axios/axiosInstance";
@@ -14,16 +14,13 @@ const Index = () => {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const handleLogin = async (values: {
-    Email: string;
-    UserPassword: string;
-  }) => {
+  const handleLogin = async (values: { email: string; userPassword: string }) => {
     setLoading(true);
     try {
-      const response = await axiosInstance.post("/Login", values);
+      const response = await axiosInstance.post("/api/User/login", values);
 
       if (isEqual(response?.data?.errCode, 0)) {
-        const { token, user } = response?.data;
+        const { token, errCode, ...user } = response.data;
 
         // Lưu thông tin người dùng vào localStorage
         localStorage.setItem("user", JSON.stringify(user));
@@ -51,7 +48,7 @@ const Index = () => {
         <Form layout="vertical" onFinish={handleLogin}>
           <Form.Item
             label="Email"
-            name="Email"
+            name="email"
             rules={[
               { required: true, message: "Vui lòng nhập email!" },
               { type: "email", message: "Email không hợp lệ!" },
@@ -62,19 +59,14 @@ const Index = () => {
 
           <Form.Item
             label="Mật khẩu"
-            name="UserPassword"
+            name="userPassword"
             rules={[{ required: true, message: "Vui lòng nhập mật khẩu!" }]}
           >
             <Input.Password placeholder="Nhập mật khẩu" />
-            <div className={styles.forgotPassword}>
-              <a
-                //onClick={() => router.push("/forgot-password")}
-                style={{ color: "#1890ff" }}
-              >
-                Quên mật khẩu?
-              </a>
-            </div>
           </Form.Item>
+          <div className={styles.forgotPassword}>
+            <a style={{ color: "#1890ff" }}>Quên mật khẩu?</a>
+          </div>
 
           <Form.Item>
             <Button type="primary" htmlType="submit" loading={loading} block>

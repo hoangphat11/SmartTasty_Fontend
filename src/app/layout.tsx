@@ -48,7 +48,7 @@ export default function RootLayout({
             </Providers>
           </ConfigProvider>
         </AntdRegistry>
-      </body >
-    </html >
+      </body>
+    </html>
   );
 }
