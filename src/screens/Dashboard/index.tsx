@@ -16,7 +16,10 @@ const LoginPage = () => {
   const router = useRouter();
   const dispatch = useDispatch();
 
-  const handleLogin = async (values: { email: string; userPassword: string }) => {
+  const handleLogin = async (values: {
+    email: string;
+    userPassword: string;
+  }) => {
     setLoading(true);
     try {
       const response = await axiosInstance.post("/api/User/login", values);
@@ -29,17 +32,11 @@ const LoginPage = () => {
         // Lưu token vào cookie
         document.cookie = `token=${data.token}; path=/; max-age=86400`;
 
-        // Lưu user vào Redux
+        // Đẩy user vào Redux
         dispatch(setUser(data.user));
 
         toast.success("Đăng nhập thành công!");
-
-        // Chuyển hướng dựa vào role
-        if (data.user.role === "admin") {
-          router.push("/admin");
-        } else {
-          router.push("/");
-        }
+        router.push("/");
       } else {
         toast.error("Email hoặc mật khẩu không chính xác!");
       }
@@ -79,7 +76,7 @@ const LoginPage = () => {
           <div className={styles.forgotPassword}>
             <a
               style={{ color: "#1890ff", cursor: "pointer" }}
-              onClick={() => router.push("/forgotPassword")}
+              onClick={() => router.push("/changePassword")}
             >
               Quên mật khẩu?
             </a>

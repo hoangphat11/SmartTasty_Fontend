@@ -1,17 +1,15 @@
 "use client";
 
 import { Roboto } from "next/font/google";
-import { Dancing_Script } from "next/font/google";
+//import { Dancing_Script } from "next/font/google";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
 import { ConfigProvider } from "antd";
 import { ToastContainer } from "react-toastify";
 import Providers from "@/redux/providers/Providers";
 import { usePathname } from "next/navigation";
-
 import "./globals.css";
-
-// import Header from "@/components/Header";
-// import Footer from "@/components/Footer";
+ import Header from "@/components/Header";
+ import Footer from "@/components/Footer";
 
 const roboto = Roboto({
   subsets: ["latin"],
@@ -19,11 +17,11 @@ const roboto = Roboto({
   variable: "--font-roboto",
 });
 
-const dancingScript = Dancing_Script({
-  subsets: ["latin"],
-  weight: ["400", "500", "700"],
-  variable: "--font-dancing-script",
-});
+// const dancingScript = Dancing_Script({
+//   subsets: ["latin"],
+//   weight: ["400", "500", "700"],
+//   variable: "--font-dancing-script",
+// });
 
 export default function RootLayout({
   children,
@@ -31,9 +29,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   //Nao lam Login thi them vao, de go header vaf footer
-  // const pathname = usePathname();
-  // const isAuthPage =
-  //   pathname === "/AuthenticationPage";
+  const pathname = usePathname();
+  const isAuthPage =
+    pathname === "/login" ||
+    pathname === "/register" ||
+    pathname === "/admin";
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -42,9 +42,9 @@ export default function RootLayout({
           <ToastContainer />
           <ConfigProvider>
             <Providers>
-              {/* {!isAuthPage && <Header />} */}
+               {!isAuthPage && <Header />} 
               {children}
-              {/* {!isAuthPage && <Footer />} */}
+               {!isAuthPage && <Footer />} 
             </Providers>
           </ConfigProvider>
         </AntdRegistry>

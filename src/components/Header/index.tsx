@@ -3,13 +3,10 @@
 import { useState, useEffect } from "react";
 import { Button, Popover, Input, Select } from "antd";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { FaUserCircle } from "react-icons/fa";
 import { BellOutlined, SearchOutlined } from "@ant-design/icons";
 import styles from "./styles.module.scss";
 import Image from "next/image";
-import { useDispatch } from "react-redux";
-import { clearUser } from "@/redux/slices/userSide";
 
 const { Option } = Select;
 
@@ -19,48 +16,39 @@ const getCookie = (name: string) => {
 };
 
 const Header = () => {
-  const pathname = usePathname();
-  const dispatch = useDispatch();
-
-  // State lưu userName lấy từ localStorage
-  const [userName, setUserName] = useState<string | null>(null);
+  const [localUserName, setLocalUserName] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [language, setLanguage] = useState<"vi" | "en">("vi");
   const [showLanguagePopover, setShowLanguagePopover] = useState(false);
 
   useEffect(() => {
-    // Kiểm tra token cookie
     const token = getCookie("token");
     setIsLoggedIn(!!token);
 
-    // Lấy user từ localStorage
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      try {
-        const userObj = JSON.parse(storedUser);
-        if (userObj.userName) {
-          setUserName(userObj.userName);
-        }
-      } catch (error) {
-        console.error("Lỗi parse user trong localStorage:", error);
+    try {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        const parsedUser = JSON.parse(storedUser);
+        const userName = parsedUser?.user?.userName || "User";
+        setLocalUserName(userName);
       }
+    } catch (error) {
+      console.error("Lỗi khi lấy user từ localStorage:", error);
     }
   }, []);
 
   const handleLogout = () => {
     document.cookie = "token=; path=/; max-age=0";
-    dispatch(clearUser()); // Xóa user trong redux nếu có
+    localStorage.removeItem("user");
     setIsLoggedIn(false);
-    setUserName(null);
+    setLocalUserName(null);
     window.location.href = window.location.origin;
   };
 
-  const flagVN =
-    "https://upload.wikimedia.org/wikipedia/commons/2/21/Flag_of_Vietnam.svg";
-  const flagUS =
-    "https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg";
-  const flagSrc = language === "vi" ? flagVN : flagUS;
-  const altText = language === "vi" ? "VN" : "EN";
+  const flagSrc =
+    language === "vi"
+      ? "https://upload.wikimedia.org/wikipedia/commons/2/21/Flag_of_Vietnam.svg"
+      : "https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg";
 
   const languageSelectContent = (
     <div
@@ -71,7 +59,11 @@ const Header = () => {
       style={{ cursor: "pointer" }}
     >
       <Image
-        src={language === "vi" ? flagUS : flagVN}
+        src={
+          language === "vi"
+            ? "https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg"
+            : "https://upload.wikimedia.org/wikipedia/commons/2/21/Flag_of_Vietnam.svg"
+        }
         alt={language === "vi" ? "EN" : "VN"}
         width={24}
         height={16}
@@ -89,7 +81,7 @@ const Header = () => {
           marginBottom: 8,
         }}
       >
-        Xin chào, {userName || "user"}
+        Xin chào, {localUserName || "User"}
       </div>
       <Link href="/account">
         <Button type="text">Tài khoản</Button>
@@ -106,7 +98,6 @@ const Header = () => {
   return (
     <div className={styles.container}>
       <div className={styles.headerWrapper}>
-        {/* Logo */}
         <Link href="/">
           <Image
             src="https://raw.githubusercontent.com/lamlinhh/Travel_Web/refs/heads/vu/assets/Images/logo.webp"
@@ -117,27 +108,31 @@ const Header = () => {
           />
         </Link>
 
-        {/* Chọn thành phố */}
-        <Select defaultValue="TP. HCM" style={{ width: 120 }} bordered={false}>
+        <Select
+          defaultValue="TP. HCM"
+          style={{ width: 120 }}
+          variant="borderless"
+        >
           <Option value="TP. HCM">TP. HCM</Option>
           <Option value="HN">Hà Nội</Option>
           <Option value="DN">Đà Nẵng</Option>
         </Select>
 
-        {/* Danh mục */}
-        <Select defaultValue="Ăn uống" style={{ width: 120 }} bordered={false}>
+        <Select
+          defaultValue="Ăn uống"
+          style={{ width: 120 }}
+          variant="borderless"
+        >
           <Option value="Ăn uống">Ăn uống</Option>
           <Option value="Cà phê">Cà phê</Option>
         </Select>
 
-        {/* Ô tìm kiếm */}
         <Input
           placeholder="Địa điểm, món ăn, loại hình..."
           style={{ width: 300 }}
           suffix={<SearchOutlined />}
         />
 
-        {/* Người dùng / Đăng nhập */}
         {isLoggedIn ? (
           <Popover content={userMenu} trigger="click" placement="bottomRight">
             <div
@@ -149,7 +144,6 @@ const Header = () => {
               }}
             >
               <FaUserCircle size={28} />
-              <span style={{ marginLeft: 8 }}>{userName}</span>
             </div>
           </Popover>
         ) : (
@@ -158,24 +152,27 @@ const Header = () => {
               <Button type="text">Đăng nhập</Button>
             </Link>
             <Link href="/register">
-              <Button type="text">Đăng Ký</Button>
+              <Button type="text">Đăng ký</Button>
             </Link>
           </div>
         )}
 
-        {/* Thông báo */}
         <BellOutlined style={{ fontSize: 18, margin: "0 12px" }} />
 
-        {/* Lá cờ chọn ngôn ngữ */}
         <Popover
           content={languageSelectContent}
-          visible={showLanguagePopover}
+          open={showLanguagePopover}
           placement="bottomRight"
           trigger="click"
-          onVisibleChange={(visible) => setShowLanguagePopover(visible)}
+          onOpenChange={(open) => setShowLanguagePopover(open)}
         >
           <div style={{ cursor: "pointer", marginLeft: 8 }}>
-            <Image src={flagSrc} alt={altText} width={24} height={16} />
+            <Image
+              src={flagSrc}
+              alt={language.toUpperCase()}
+              width={24}
+              height={16}
+            />
           </div>
         </Popover>
       </div>
