@@ -7,6 +7,7 @@ import { FaUserCircle } from "react-icons/fa";
 import { BellOutlined, SearchOutlined } from "@ant-design/icons";
 import styles from "./styles.module.scss";
 import Image from "next/image";
+import anhdaidien from "@/assets/Image/Logo/anhdaidien.png"
 
 const { Option } = Select;
 
@@ -100,9 +101,9 @@ const Header = () => {
       <div className={styles.headerWrapper}>
         <Link href="/">
           <Image
-            src="https://raw.githubusercontent.com/lamlinhh/Travel_Web/refs/heads/vu/assets/Images/logo.webp"
+            src={anhdaidien}
             alt="Logo"
-            width={100}
+            width={64}
             height={40}
             priority
           />
