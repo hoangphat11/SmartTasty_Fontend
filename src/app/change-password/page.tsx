@@ -4,7 +4,7 @@ import ChangePassword from "@/screens/ChangePassword";
 const page = () => {
   return (
     <>
-      <ChangePassword/>
+      <ChangePassword />
     </>
   );
 };

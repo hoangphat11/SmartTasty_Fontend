@@ -14,13 +14,13 @@ const ChangePasswordPage = () => {
   const router = useRouter();
 
   const handleChangePassword = async (values: {
-    oldPassword: string;
+    currentPassword: string;
     newPassword: string;
-    confirmPassword: string;
+    confirmNewPassword: string;
   }) => {
-    const { oldPassword, newPassword, confirmPassword } = values;
+    const { currentPassword, newPassword, confirmNewPassword } = values;
 
-    if (newPassword !== confirmPassword) {
+    if (newPassword !== confirmNewPassword) {
       toast.error("Mật khẩu mới và xác nhận không khớp!");
       return;
     }
@@ -28,20 +28,23 @@ const ChangePasswordPage = () => {
     setLoading(true);
     try {
       const response = await axiosInstance.post("/api/User/change-password", {
-        oldPassword,
+        currentPassword,
         newPassword,
+        confirmNewPassword,
       });
 
-      const { errCode, message } = response.data;
+      const { errCode, errMessage } = response.data;
 
       if (errCode === 0) {
-        toast.success("Đổi mật khẩu thành công!");
+        toast.success("Đổi mật khẩu thành công! Vui lòng đăng nhập lại.");
+        localStorage.removeItem("token");
         router.push("/login");
       } else {
-        toast.error(message || "Đổi mật khẩu thất bại!");
+        toast.error(errMessage || "Đổi mật khẩu thất bại!");
       }
-    } catch {
-      toast.error("Có lỗi xảy ra khi đổi mật khẩu!");
+    } catch (error: any) {
+      toast.error(error?.errMessage || " lỗi .");
+      console.error("Change password error:", error);
     } finally {
       setLoading(false);
     }
@@ -55,24 +58,27 @@ const ChangePasswordPage = () => {
         </Title>
         <Form layout="vertical" onFinish={handleChangePassword}>
           <Form.Item
-            label="Mật khẩu cũ"
-            name="oldPassword"
-            rules={[{ required: true, message: "Vui lòng nhập mật khẩu cũ!" }]}
+            label="Mật khẩu hiện tại"
+            name="currentPassword"
+            rules={[{ required: true, message: "Vui lòng nhập mật khẩu hiện tại!" }]}
           >
-            <Input.Password placeholder="Nhập mật khẩu cũ" />
+            <Input.Password placeholder="Nhập mật khẩu hiện tại" />
           </Form.Item>
 
           <Form.Item
             label="Mật khẩu mới"
             name="newPassword"
-            rules={[{ required: true, message: "Vui lòng nhập mật khẩu mới!" }]}
+            rules={[
+              { required: true, message: "Vui lòng nhập mật khẩu mới!" },
+              { min: 6, message: "Mật khẩu phải có ít nhất 6 ký tự!" },
+            ]}
           >
             <Input.Password placeholder="Nhập mật khẩu mới" />
           </Form.Item>
 
           <Form.Item
             label="Xác nhận mật khẩu mới"
-            name="confirmPassword"
+            name="confirmNewPassword"
             dependencies={["newPassword"]}
             rules={[
               { required: true, message: "Vui lòng xác nhận mật khẩu mới!" },

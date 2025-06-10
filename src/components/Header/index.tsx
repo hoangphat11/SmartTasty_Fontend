@@ -7,7 +7,7 @@ import { FaUserCircle } from "react-icons/fa";
 import { BellOutlined, SearchOutlined } from "@ant-design/icons";
 import styles from "./styles.module.scss";
 import Image from "next/image";
-import anhdaidien from "@/assets/Image/Logo/anhdaidien.png"
+import anhdaidien from "@/assets/Image/Logo/anhdaidien.png";
 
 const { Option } = Select;
 
@@ -87,9 +87,6 @@ const Header = () => {
       <Link href="/account">
         <Button type="text">Tài khoản</Button>
       </Link>
-      <Link href="/my-tours">
-        <Button type="text">Tour đã đặt</Button>
-      </Link>
       <Button type="text" danger onClick={handleLogout}>
         Đăng xuất
       </Button>
@@ -100,13 +97,7 @@ const Header = () => {
     <div className={styles.container}>
       <div className={styles.headerWrapper}>
         <Link href="/">
-          <Image
-            src={anhdaidien}
-            alt="Logo"
-            width={64}
-            height={40}
-            priority
-          />
+          <Image src={anhdaidien} alt="Logo" width={64} height={40} priority />
         </Link>
 
         <Select
