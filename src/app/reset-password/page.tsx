@@ -1,13 +1,12 @@
 import React from "react";
-import Account from "@/screens/Account";
+import ResetPassword from "@/screens/ResetPassword";
 
 const page = () => {
   return (
     <>
-      <Account />
+      <ResetPassword />
     </>
   );
 };
 
 export default page;
-  
