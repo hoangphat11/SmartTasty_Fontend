@@ -1,12 +1,13 @@
-import Home from "@/screens/Home/index";
 import React from "react";
+import ClientOnly from "@/components/ClientOnly";
+import Home from "@/screens/Home";
 
-const page = () => {
+const Page = () => {
   return (
-    <>
+    <ClientOnly>
       <Home />
-    </>
+    </ClientOnly>
   );
 };
 
-export default page;
+export default Page;
