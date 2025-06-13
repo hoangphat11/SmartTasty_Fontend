@@ -7,7 +7,7 @@ import { FaUserCircle } from "react-icons/fa";
 import { BellOutlined, SearchOutlined } from "@ant-design/icons";
 import Image from "next/image";
 import styles from "./styles.module.scss";
-import anhdaidien from "@/assets/Image/Logo/anhdaidien.png";
+import { getImageUrl } from "@/constants/config/imageBaseUrl";
 
 const { Option } = Select;
 
@@ -108,7 +108,7 @@ const Header = () => {
       <div className={styles.headerWrapper}>
         {/* Logo */}
         <Link href="/">
-          <Image src={anhdaidien} alt="Logo" width={64} height={40} priority />
+          <Image src={getImageUrl("Logo/anhdaidien.png")}  alt="Logo" width={64} height={40} priority />
         </Link>
 
         {/* Khu vực */}
@@ -158,7 +158,7 @@ const Header = () => {
           open={showLanguagePopover}
           placement="bottomRight"
           trigger="click"
-          onOpenChange={(open) => setShowLanguagePopover(open)}
+          onOpenChange={(open: any) => setShowLanguagePopover(open)}
         >
           <div style={{ cursor: "pointer", marginLeft: 8 }}>
             <Image
