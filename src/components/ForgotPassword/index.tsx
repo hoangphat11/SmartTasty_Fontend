@@ -4,7 +4,7 @@ import { Form, Input, Button, Typography } from "antd";
 import axiosInstance from "@/axios/axiosInstance";
 import { toast } from "react-toastify";
 import { useState } from "react";
-import styles from "./styles.module.scss"
+import styles from "./styles.module.scss";
 
 const { Title } = Typography;
 
@@ -15,7 +15,6 @@ const ForgotPasswordPage = () => {
     setLoading(true);
     try {
       const res = await axiosInstance.post("/api/User/forgot-password", values);
-
 
       if (res.data.errCode === 0) {
         toast.success(
@@ -34,7 +33,6 @@ const ForgotPasswordPage = () => {
   };
 
   return (
-
     <div className={styles.accountContainer}>
       <Title level={3}>Quên mật khẩu</Title>
       <Form onFinish={onFinish} layout="vertical">

@@ -1,7 +1,7 @@
 
 import SlideHeader from "@/components/SlideHeader"
 
-const Home = () => {
+const index = () => {
 
   return (
     <>
@@ -9,4 +9,4 @@ const Home = () => {
       </>
   );
 };
-export default Home;
+export default index;

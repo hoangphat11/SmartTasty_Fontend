@@ -1,10 +1,10 @@
-import Login from "@/components/Login"
+import ForgotPassword from "@/components/ForgotPassword"
 
 const index = () => {
 
   return (
     <>
-    <Login/>
+    <ForgotPassword/>
       </>
   );
 };

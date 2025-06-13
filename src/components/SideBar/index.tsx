@@ -4,9 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import styles from "./styles.module.scss";
 import PersonIcon from "@mui/icons-material/Person";
-import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+//import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import SpaceDashboardIcon from "@mui/icons-material/SpaceDashboard";
-import PaymentIcon from "@mui/icons-material/Payment";
+//import PaymentIcon from "@mui/icons-material/Payment";
 
 const Index = () => {
   const pathname = usePathname();

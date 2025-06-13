@@ -1,10 +1,11 @@
 import React from "react";
-import Login from "@/screens/Login";
+import Login from "@/components/Login";
 
 const page = () => {
   return (
     <>
       <Login />
+
     </>
   );
 };
