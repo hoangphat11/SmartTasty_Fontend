@@ -5,8 +5,8 @@ interface User {
   userName: string;
   email: string;
   phone: string;
-  address: string;
   role: string;
+  address: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -16,8 +16,8 @@ const initialState: User = {
   userName: '',
   email: '',
   phone: '',
-  address: '',
   role: '',
+  address: '',
   createdAt: '',
   updatedAt: '',
 };

@@ -34,9 +34,11 @@ const LoginPage = () => {
 
         toast.success("Đăng nhập thành công!");
 
-        // Chuyển hướng dựa vào role
+        // Chuyển hướng dựa theo role
         if (data.user.role === "admin") {
           router.push("/admin");
+        } else if (data.user.role === "business") {
+          router.push("/business");
         } else {
           router.push("/");
         }
