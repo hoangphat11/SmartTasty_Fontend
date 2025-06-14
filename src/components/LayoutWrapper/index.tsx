@@ -15,7 +15,7 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
 
 function InnerLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const hideHeaderFooter = ["/login", "/register"].includes(pathname);
+  const hideHeaderFooter = ["/login", "/register", "/register-business"].includes(pathname);
 
   return (
     <>

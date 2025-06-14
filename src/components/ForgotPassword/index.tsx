@@ -25,7 +25,7 @@ const ForgotPasswordPage = () => {
           res.data.errMessage || "Email không tồn tại trong hệ thống."
         );
       }
-    } catch (err) {
+    } catch (err ) {
       toast.error("Đã có lỗi xảy ra. Vui lòng thử lại.");
     } finally {
       setLoading(false);

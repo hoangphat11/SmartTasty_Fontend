@@ -1,7 +1,7 @@
 .container {
   position: relative;
   height: 100%;
-  width: 100vw; /* đảm bảo container rộng đúng viewport */
+  width: 100%; /* đảm bảo container rộng đúng viewport */
   overflow: hidden;
 }
 

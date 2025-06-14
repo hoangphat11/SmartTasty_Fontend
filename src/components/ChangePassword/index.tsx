@@ -70,7 +70,7 @@ const ChangePasswordPage = () => {
           <Form.Item
             label="Mật khẩu mới"
             name="newPassword"
-            rules={[
+           rules={[
               { required: true, message: "Vui lòng nhập mật khẩu!" },
               {
                 pattern:
@@ -89,6 +89,11 @@ const ChangePasswordPage = () => {
             dependencies={["newPassword"]}
             rules={[
               { required: true, message: "Vui lòng xác nhận mật khẩu mới!" },
+              {
+                pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{6,}$/,
+                message:
+                  "Mật khẩu phải chứa chữ hoa, chữ thường, số, ký tự đặc biệt và dài hơn 5 ký tự.",
+              },
               ({ getFieldValue }) => ({
                 validator(_, value) {
                   if (!value || getFieldValue("newPassword") === value) {

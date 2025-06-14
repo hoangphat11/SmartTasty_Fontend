@@ -25,7 +25,7 @@ const Index = () => {
     try {
       const response = await axiosInstance.post("/api/User", {
         ...values,
-        Role: "user",
+        Role: "business",
       });
 
       const { errCode, errMessage } = response.data;

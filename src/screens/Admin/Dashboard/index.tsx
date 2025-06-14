@@ -1,14 +1,10 @@
 import Dashboard from "@/components/Admin/Dashboard";
 
-import React from "react";
-
-const page = () => {
+const index = () => {
   return (
     <>
       <Dashboard />
-
     </>
   );
 };
-
-export default page;
+export default index;

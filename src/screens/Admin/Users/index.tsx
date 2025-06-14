@@ -1,12 +1,10 @@
-import React from "react";
 import User from "@/components/Admin/User";
 
-const page = () => {
+const index = () => {
   return (
     <>
       <User />
     </>
   );
 };
-
-export default page;
+export default index;

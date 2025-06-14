@@ -38,7 +38,7 @@ const LoginPage = () => {
         if (data.user.role === "admin") {
           router.push("/admin");
         } else if (data.user.role === "business") {
-          router.push("/business");
+          router.push("/restaurant");
         } else {
           router.push("/");
         }

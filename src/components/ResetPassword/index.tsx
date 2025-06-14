@@ -52,14 +52,30 @@ const ResetPasswordPage = () => {
         <Form.Item
           label="Mật khẩu mới"
           name="password"
-          rules={[{ required: true, message: "Vui lòng nhập mật khẩu!" }]}
+           rules={[
+              { required: true, message: "Vui lòng nhập mật khẩu!" },
+              {
+                pattern:
+                  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{6,}$/,
+                message:
+                  "Mật khẩu phải chứa chữ hoa, chữ thường, số, ký tự đặc biệt và dài hơn 5 ký tự.",
+              },
+            ]}
         >
           <Input.Password />
         </Form.Item>
         <Form.Item
           label="Xác nhận mật khẩu"
           name="confirmPassword"
-          rules={[{ required: true, message: "Vui lòng xác nhận mật khẩu!" }]}
+          rules={[
+              { required: true, message: "Vui lòng nhập mật khẩu!" },
+              {
+                pattern:
+                  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{6,}$/,
+                message:
+                  "Mật khẩu phải chứa chữ hoa, chữ thường, số, ký tự đặc biệt và dài hơn 5 ký tự.",
+              },
+            ]}
         >
           <Input.Password />
         </Form.Item>

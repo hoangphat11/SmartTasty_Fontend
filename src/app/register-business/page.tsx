@@ -1,10 +1,10 @@
 import React from "react";
-import Business from "@/components/Business";
+import RegisterBusiness from "@/components/RegisterBusiness";
 
 const page = () => {
   return (
     <>
-      <Business/>
+      <RegisterBusiness />
     </>
   );
 };

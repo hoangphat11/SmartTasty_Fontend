@@ -7,6 +7,7 @@ import axiosInstance from "@/axios/axiosInstance";
 import axios from "axios";
 import styles from "./styles.module.scss";
 import { toast } from "react-toastify";
+import Link from "next/link";
 
 const { Title } = Typography;
 
@@ -126,12 +127,18 @@ const Index = () => {
       </Card>
 
       <div className={styles.formbusiness}>
-        <a
+        {/* <a
           onClick={() => router.push("/business")}
           style={{ color: "#1890ff", cursor: "pointer" }}
         >
           Đăng ký cho doanh nghiệp
-        </a>
+        </a> */}
+        <Link
+          href="/register-business"
+          style={{ color: "#1890ff", cursor: "pointer" }}
+        >
+          Đăng ký cho doanh nghiệp
+        </Link>
       </div>
     </div>
   );

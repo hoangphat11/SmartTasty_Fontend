@@ -1,12 +1,10 @@
-import Dashboard from "@/components/Admin/Dashboard";
-
 import React from "react";
+import Business from "@/components/Admin/Business";
 
 const page = () => {
   return (
     <>
-      <Dashboard />
-
+      <Business />
     </>
   );
 };
