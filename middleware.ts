@@ -1,51 +1,42 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-import { jwtDecode } from "jwt-decode";
+// import { NextResponse } from "next/server";
+// import type { NextRequest } from "next/server";
+// import { jwtDecode } from "jwt-decode";
 
-interface JwtPayload {
-  role: string;
-  exp: number;
-}
+// interface JwtPayload {
+//   role: string;
+//   exp: number;
+// }
 
-export function middleware(request: NextRequest) {
-  const token = request.cookies.get("token")?.value;
-  const path = request.nextUrl.pathname;
+// export function middleware(request: NextRequest) {
+//   const token = request.cookies.get("token")?.value;
 
-  const redirectToError = () =>
-    NextResponse.rewrite(new URL("/ErrorPages/notfound", request.url));
+//   if (!token) {
+//     console.log("⛔ Không có token");
+//     return NextResponse.redirect(new URL("/login", request.url));
+//   }
 
-  if (!token) {
-    console.warn("🚫 Không có token:", path);
-    return redirectToError();
-  }
+//   try {
+//     const decoded = jwtDecode<JwtPayload>(token);
+//     const role = decoded.role;
+//     const pathname = request.nextUrl.pathname;
 
-  try {
-    const decoded = jwtDecode<JwtPayload>(token);
-    const { role, exp } = decoded;
+//     console.log("🔍 PATH:", pathname, "ROLE:", role);
 
-    const now = Math.floor(Date.now() / 1000);
-    if (exp < now) {
-      console.warn("⏰ Token hết hạn:", exp);
-      return redirectToError();
-    }
+//     if (pathname.startsWith("/admin") && role !== "admin") {
+//       return NextResponse.redirect(new URL("/unauthorized", request.url));
+//     }
 
-    if (path.startsWith("/admin") && role !== "admin") {
-      console.warn("🚫 Role không hợp lệ vào /admin:", role);
-      return redirectToError();
-    }
+//     if (pathname.startsWith("/restaurant") && role !== "business") {
+//       return NextResponse.redirect(new URL("/unauthorized", request.url));
+//     }
 
-    if (path.startsWith("/business") && role !== "business") {
-      console.warn("🚫 Role không hợp lệ vào /business:", role);
-      return redirectToError();
-    }
+//     return NextResponse.next();
+//   } catch (e) {
+//     console.log("⚠️ Token decode thất bại", e);
+//     return NextResponse.redirect(new URL("/login", request.url));
+//   }
+// }
 
-    return NextResponse.next();
-  } catch (err) {
-    console.error("❌ Lỗi decode token:", err);
-    return redirectToError();
-  }
-}
-
-export const config = {
-  matcher: ["/admin", "/admin/:path*", "/business", "/business/:path*"],
-};
+// export const config = {
+//   matcher: ["/admin/:path*", "/restaurant/:path*"],
+// };

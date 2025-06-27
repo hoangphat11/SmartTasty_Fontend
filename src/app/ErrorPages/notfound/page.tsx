@@ -1,5 +1,5 @@
 import React from "react";
-import NotFound from "@/components/ErrorPages/NotFound";
+import NotFound from "@/components/ErrorPages";
 
 const page = () => {
   return (

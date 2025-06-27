@@ -1,41 +1,63 @@
 "use client";
 
-import Sidebar from "@/components/Admin/SideBar";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
+import Sidebar from "@/components/Admin/SideBar";
 
 interface JwtPayload {
   role: string;
   exp: number;
 }
 
-export default function RootLayout({
+export default function RestaurantLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const router = useRouter();
+  const [authorized, setAuthorized] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem("token"); // hoặc từ cookie
+    let token: string | null = null;
+
+    // Ưu tiên lấy từ cookie
+    const cookieToken = document.cookie
+      .split("; ")
+      .find((c) => c.startsWith("token="));
+    if (cookieToken) {
+      token = cookieToken.split("=")[1];
+    }
+
+    // Fallback nếu cookie không có
     if (!token) {
-      router.replace("/ErrorPage/notfound");
+      token = localStorage.getItem("token");
+    }
+
+    if (!token) {
+      console.warn("❌ Không tìm thấy token");
+      router.replace("/ErrorPages/notfound");
       return;
     }
 
     try {
       const decoded = jwtDecode<JwtPayload>(token);
+      console.log("✅ Token decode thành công:", decoded);
 
-      // Kiểm tra quyền truy cập
       if (decoded.role !== "business") {
-        router.replace("/ErrorPage/notfound");
+        console.warn("⛔ Sai role:", decoded.role);
+        router.replace("/ErrorPages/notfound");
+      } else {
+        setAuthorized(true);
       }
     } catch (error) {
-      console.error("Invalid token", error);
-      router.replace("/ErrorPage/notfound");
+      console.error("❌ Token không hợp lệ:", error);
+      router.replace("/ErrorPages/notfound");
     }
   }, [router]);
+
+  // Tránh render sớm khi chưa xác thực xong
+  if (!authorized) return null;
 
   return (
     <div style={{ display: "flex", marginTop: "80px" }}>
