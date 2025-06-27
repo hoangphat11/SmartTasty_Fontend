@@ -1,5 +1,5 @@
 import React from "react";
-import Restaurant from "@/components/Restaurant";
+import Restaurant from "@/screens/Restaurant";
 
 const page = () => {
   return (

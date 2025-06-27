@@ -1,5 +1,5 @@
 import React from "react";
-import RegisterBusiness from "@/components/RegisterBusiness";
+import RegisterBusiness from "@/screens/RegisterBusiness";
 
 const page = () => {
   return (

@@ -1,5 +1,5 @@
 import React from "react";
-import Business from "@/components/Admin/Business";
+import Business from "@/screens/Admin/Business";
 
 const page = () => {
   return (

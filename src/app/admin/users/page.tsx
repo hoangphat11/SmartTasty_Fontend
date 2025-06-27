@@ -1,5 +1,5 @@
 import React from "react";
-import User from "@/components/Admin/User";
+import User from "@/screens/Admin/Users";
 
 const page = () => {
   return (

@@ -1,10 +1,10 @@
 import React from "react";
-import ForgotPassword from "@/screens/ForgotPassword";
+import NotFound from "@/components/ErrorPages/NotFound";
 
 const page = () => {
   return (
     <>
-      <ForgotPassword/>
+      <NotFound />
     </>
   );
 };

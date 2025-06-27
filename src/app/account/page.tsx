@@ -1,5 +1,5 @@
 import React from "react";
-import Account from "@/components/Account";
+import Account from "@/screens/Account";
 
 const page = () => {
   return (

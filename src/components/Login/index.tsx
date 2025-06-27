@@ -16,36 +16,57 @@ const LoginPage = () => {
   const router = useRouter();
   const dispatch = useDispatch();
 
-  const handleLogin = async (values: { email: string; userPassword: string }) => {
+  const handleLogin = async (values: {
+    email: string;
+    userPassword: string;
+  }) => {
     setLoading(true);
+    console.log("🔐 Đang gửi thông tin login:", values);
+
     try {
       const response = await axiosInstance.post("/api/User/login", values);
       const { errMessage, data } = response.data;
 
+      console.log("📥 Phản hồi từ server:", response.data);
+
       if (errMessage === "OK" && data?.token && data?.user) {
-        // Lưu token + user vào localStorage
+        console.log("✅ Login thành công - user:", data.user);
+        console.log("✅ Token JWT:", data.token);
+
+        // Redux
+        dispatch(setUser(data.user));
+
+        // Lưu localStorage
         localStorage.setItem("user", JSON.stringify(data));
 
-        // Lưu token vào cookie
+        // Lưu token vào cookie (cho middleware)
         document.cookie = `token=${data.token}; path=/; max-age=86400`;
 
-        // Lưu user vào Redux
-        dispatch(setUser(data.user));
+        // Debug cookie
+        console.log("🍪 Cookie hiện tại:", document.cookie);
 
         toast.success("Đăng nhập thành công!");
 
-        // Chuyển hướng dựa theo role
-        if (data.user.role === "admin") {
-          router.push("/admin");
-        } else if (data.user.role === "business") {
-          router.push("/restaurant");
-        } else {
-          router.push("/");
+        // Điều hướng theo role
+        switch (data.user.role) {
+          case "admin":
+            console.log("➡️ Chuyển hướng đến /admin");
+            router.push("/admin");
+            break;
+          case "business":
+            console.log("➡️ Chuyển hướng đến /restaurant");
+            router.push("/restaurant");
+            break;
+          default:
+            console.log("➡️ Chuyển hướng đến /");
+            router.push("/");
         }
       } else {
+        console.warn("❌ Login sai thông tin:", errMessage);
         toast.error("Email hoặc mật khẩu không chính xác!");
       }
     } catch (error) {
+      console.error("❌ Lỗi khi gửi login:", error);
       toast.error("Đăng nhập thất bại! Vui lòng thử lại.");
     } finally {
       setLoading(false);

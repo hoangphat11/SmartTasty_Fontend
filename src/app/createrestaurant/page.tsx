@@ -1,5 +1,5 @@
 import React from "react";
-import CreateRestaurant from "@/components/CreateRestaurant";
+import CreateRestaurant from "@/screens/CreateRestaurant";
 
 const page = () => {
   return (
