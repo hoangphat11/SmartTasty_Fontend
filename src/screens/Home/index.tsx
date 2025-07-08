@@ -6,6 +6,7 @@ const index = () => {
   return (
     <>
     <SlideHeader/>
+    <a href=""> helooo bodyyyyyyyyyyy</a>
       </>
   );
 };

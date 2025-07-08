@@ -123,16 +123,17 @@ const Index = () => {
               Đăng ký
             </Button>
           </Form.Item>
+           <div className={styles.registerBottom}>
+            Bạn đã có tài khoảng? 
+            <a onClick={() => router.push("/login")}>
+              Đăng nhập
+            </a>
+
+          </div>
         </Form>
       </Card>
 
       <div className={styles.formbusiness}>
-        {/* <a
-          onClick={() => router.push("/business")}
-          style={{ color: "#1890ff", cursor: "pointer" }}
-        >
-          Đăng ký cho doanh nghiệp
-        </a> */}
         <Link
           href="/register-business"
           style={{ color: "#1890ff", cursor: "pointer" }}
@@ -140,6 +141,7 @@ const Index = () => {
           Đăng ký cho doanh nghiệp
         </Link>
       </div>
+      
     </div>
   );
 };

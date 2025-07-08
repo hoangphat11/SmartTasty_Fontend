@@ -30,8 +30,8 @@ const LoginPage = () => {
       console.log("📥 Phản hồi từ server:", response.data);
 
       if (errMessage === "OK" && data?.token && data?.user) {
-        console.log("✅ Login thành công - user:", data.user);
-        console.log("✅ Token JWT:", data.token);
+        // console.log("✅ Login thành công - user:", data.user);
+        // console.log("✅ Token JWT:", data.token);
 
         // Redux
         dispatch(setUser(data.user));
@@ -50,15 +50,15 @@ const LoginPage = () => {
         // Điều hướng theo role
         switch (data.user.role) {
           case "admin":
-            console.log("➡️ Chuyển hướng đến /admin");
+            //  console.log("➡️ Chuyển hướng đến /admin");
             router.push("/admin");
             break;
           case "business":
-            console.log("➡️ Chuyển hướng đến /restaurant");
+            //  console.log("➡️ Chuyển hướng đến /restaurant");
             router.push("/restaurant");
             break;
           default:
-            console.log("➡️ Chuyển hướng đến /");
+            // console.log("➡️ Chuyển hướng đến /");
             router.push("/");
         }
       } else {
@@ -113,6 +113,10 @@ const LoginPage = () => {
               Đăng nhập
             </Button>
           </Form.Item>
+          <div className={styles.loginBottom}>
+            Bạn mới biết đến Smarttasty?
+            <a onClick={() => router.push("/register")}>Đăng ký</a>
+          </div>
         </Form>
       </Card>
     </div>

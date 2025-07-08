@@ -110,7 +110,7 @@ const RestaurantCreatePage = () => {
               <Select.Option value="NhaHang">Nhà hàng</Select.Option>
               <Select.Option value="AnVatViaHe">Ăn vặt/vỉa hè</Select.Option>
               <Select.Option value="AnChay">Ăn chay</Select.Option>
-              <Select.Option value="CafeNuocuong">CafeNuocuong</Select.Option>
+              <Select.Option value="CafeNuocuong">Cafe/Nuocuong</Select.Option>
               <Select.Option value="QuanAn">Quán ăn</Select.Option>
               <Select.Option value="Bar">Bar</Select.Option>
               <Select.Option value="QuanNhau">Quán nhậu</Select.Option>

@@ -1,4 +1,4 @@
-import CreateRestaurant from "@/components/CreateRestaurant"
+import CreateRestaurant from "@/components/AdminRestaurant/CreateRestaurant"
 
 const index = () => {
 

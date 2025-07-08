@@ -49,7 +49,7 @@ const Header = () => {
     localStorage.removeItem("id");
     setIsLoggedIn(false);
     setLocalUserName(null);
-    window.location.href = "/";
+    window.location.href = "/login";
   };
 
   const flagSrc =
@@ -108,18 +108,32 @@ const Header = () => {
       <div className={styles.headerWrapper}>
         {/* Logo */}
         <Link href="/">
-          <Image src={getImageUrl("Logo/anhdaidien.png")}  alt="Logo" width={64} height={40} priority />
+          <Image
+            src={getImageUrl("Logo/anhdaidien.png")}
+            alt="Logo"
+            width={64}
+            height={40}
+            priority
+          />
         </Link>
 
         {/* Khu vực */}
-        <Select defaultValue="TP. HCM" style={{ width: 120 }} variant="borderless">
+        <Select
+          defaultValue="TP. HCM"
+          style={{ width: 120 }}
+          variant="borderless"
+        >
           <Option value="TP. HCM">TP. HCM</Option>
           <Option value="HN">Hà Nội</Option>
           <Option value="DN">Đà Nẵng</Option>
         </Select>
 
         {/* Danh mục */}
-        <Select defaultValue="Ăn uống" style={{ width: 120 }} variant="borderless">
+        <Select
+          defaultValue="Ăn uống"
+          style={{ width: 120 }}
+          variant="borderless"
+        >
           <Option value="Ăn uống">Ăn uống</Option>
           <Option value="Cà phê">Cà phê</Option>
         </Select>
