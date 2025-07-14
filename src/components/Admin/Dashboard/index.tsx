@@ -1,96 +1,108 @@
 "use client";
 
-import { Form, Input, Button, Card, Typography } from "antd";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { Card, Avatar, Typography } from "antd";
+import { User } from "@/types/user";
 import axiosInstance from "@/axios/axiosInstance";
 import styles from "./styles.module.scss";
+import dynamic from "next/dynamic";
+import PersonIcon from "@mui/icons-material/Person";
+import BusinessIcon from "@mui/icons-material/Business";
 import { toast } from "react-toastify";
-import { useDispatch } from "react-redux";
-import { setUser } from "@/redux/slices/userSide";
+import moment from "moment";
+
+const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
 const { Title } = Typography;
 
-const LoginPage = () => {
-  const [loading, setLoading] = useState(false);
-  const router = useRouter();
-  const dispatch = useDispatch();
+const Dashboard = () => {
+  const [users, setUsers] = useState<User[]>([]);
+  const [businessUsers, setBusinessUsers] = useState<User[]>([]);
+  const [normalUsers, setNormalUsers] = useState<User[]>([]);
 
-  const handleLogin = async (values: {
-    email: string;
-    userPassword: string;
-  }) => {
-    setLoading(true);
+  const fetchUsers = async () => {
     try {
-      const response = await axiosInstance.post("/api/User/login", values);
-      const { errMessage, data } = response.data;
-
-      if (errMessage === "OK" && data?.token && data?.user) {
-        // Lưu token + user vào localStorage
-        localStorage.setItem("user", JSON.stringify(data));
-
-        // Lưu token vào cookie
-        document.cookie = `token=${data.token}; path=/; max-age=86400`;
-
-        // Đẩy user vào Redux
-        dispatch(setUser(data.user));
-
-        toast.success("Đăng nhập thành công!");
-        router.push("/");
-      } else {
-        toast.error("Email hoặc mật khẩu không chính xác!");
-      }
-    } catch (error) {
-      toast.error("Đăng nhập thất bại! Vui lòng thử lại.");
-    } finally {
-      setLoading(false);
+      const res = await axiosInstance.get("/api/User");
+      const allUsers: User[] = res.data.data || [];
+      const businesses = allUsers.filter((user) => user.role === "business");
+      const users = allUsers.filter((user) => user.role === "user");
+      setUsers(allUsers);
+      setBusinessUsers(businesses);
+      setNormalUsers(users);
+    } catch (err) {
+      toast.error("Lỗi khi lấy danh sách Users!");
     }
   };
 
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const getChartData = (userList: User[]) => {
+    return userList.reduce((acc: any, user: User) => {
+      const date = moment(user.createdAt).format("MM/YYYY");
+      acc[date] = acc[date] ? acc[date] + 1 : 1;
+      return acc;
+    }, {});
+  };
+
+  const userChartData = getChartData(normalUsers);
+  const businessChartData = getChartData(businessUsers);
+
+  const chartOptions = (categories: string[]) => ({
+    chart: { id: "chart" },
+    xaxis: {
+      categories,
+    },
+  });
+
   return (
-    <div className={styles.loginContainer}>
-      <Card className={styles.loginCard}>
-        <Title level={2} style={{ textAlign: "center" }}>
-          Đăng nhập
-        </Title>
-        <Form layout="vertical" onFinish={handleLogin}>
-          <Form.Item
-            label="Email"
-            name="email"
-            rules={[
-              { required: true, message: "Vui lòng nhập email!" },
-              { type: "email", message: "Email không hợp lệ!" },
-            ]}
-          >
-            <Input placeholder="Nhập email" />
-          </Form.Item>
+    <div className={styles.dashboard}>
+      <Title level={2}>Tổng quan người dùng</Title>
 
-          <Form.Item
-            label="Mật khẩu"
-            name="userPassword"
-            rules={[{ required: true, message: "Vui lòng nhập mật khẩu!" }]}
-          >
-            <Input.Password placeholder="Nhập mật khẩu" />
-          </Form.Item>
-
-          <div className={styles.forgotPassword}>
-            <a
-              style={{ color: "#1890ff", cursor: "pointer" }}
-              onClick={() => router.push("/changePassword")}
-            >
-              Quên mật khẩu?
-            </a>
+      <div className={styles.cards}>
+        <Card className={styles.card} bordered>
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <Avatar size="large" icon={<PersonIcon />} />
+            <div style={{ marginLeft: 12 }}>
+              <div>Tổng User thường</div>
+              <Title level={4}>{normalUsers.length}</Title>
+            </div>
           </div>
+        </Card>
+        <Card className={styles.card} bordered>
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <Avatar size="large" icon={<BusinessIcon />} />
+            <div style={{ marginLeft: 12 }}>
+              <div>Tổng User Business</div>
+              <Title level={4}>{businessUsers.length}</Title>
+            </div>
+          </div>
+        </Card>
+      </div>
 
-          <Form.Item>
-            <Button type="primary" htmlType="submit" loading={loading} block>
-              Đăng nhập
-            </Button>
-          </Form.Item>
-        </Form>
-      </Card>
+      <div className={styles.charts}>
+        <Card title="User thường theo tháng">
+          <Chart
+            options={chartOptions(Object.keys(userChartData))}
+            series={[{ name: "Users", data: Object.values(userChartData) }]}
+            type="bar"
+            width="100%"
+            height={300}
+          />
+        </Card>
+        <Card title="User Business theo tháng">
+          <Chart
+            options={chartOptions(Object.keys(businessChartData))}
+            series={[{ name: "Business", data: Object.values(businessChartData) }]}
+            type="bar"
+            width="100%"
+            height={300}
+          />
+        </Card>
+      </div>
     </div>
   );
 };
 
-export default LoginPage;
+export default Dashboard;

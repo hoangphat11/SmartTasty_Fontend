@@ -40,6 +40,9 @@ const Index = () => {
             <li>
               <Link href="/">Bàn đã đặt</Link>
             </li>
+            <li>
+              <Link href="/informations">Thông Tin Quán</Link>
+            </li>
           </ul>
         </li>
       </ul>

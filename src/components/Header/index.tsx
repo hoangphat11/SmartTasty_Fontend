@@ -130,12 +130,18 @@ const Header = () => {
 
         {/* Danh mục */}
         <Select
-          defaultValue="Ăn uống"
+          defaultValue="Danh Mục "
           style={{ width: 120 }}
           variant="borderless"
         >
-          <Option value="Ăn uống">Ăn uống</Option>
-          <Option value="Cà phê">Cà phê</Option>
+          <Option value="Buffet">Buffet</Option>
+          <Option value="NhaHang">Nhà Hàng</Option>
+          <Option value="AnVatViaHe">Ăn vặt/vỉa hè</Option>
+          <Option value="AnChay">Ăn chay</Option>
+          <Option value="CafeNuocuong">Cafe/Nuocuong</Option>
+          <Option value="QuanAn">Quán ăn</Option>
+          <Option value="Bar">Bar</Option>
+          <Option value="QuanNhau">Quán nhậu</Option>
         </Select>
 
         {/* Tìm kiếm */}

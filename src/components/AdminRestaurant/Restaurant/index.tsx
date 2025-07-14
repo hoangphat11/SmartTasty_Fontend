@@ -31,14 +31,14 @@ const RestaurantPage = () => {
 
         const allRestaurants = res.data?.data || [];
 
-        console.log("🔍 userId từ localStorage:", userId, typeof userId);
-        console.log("📋 Danh sách nhà hàng từ API:", allRestaurants);
+        // console.log("🔍 userId từ localStorage:", userId, typeof userId);
+        // console.log("📋 Danh sách nhà hàng từ API:", allRestaurants);
 
         const myRestaurants = allRestaurants.filter(
           (restaurant: any) => restaurant.ownerId === Number(userId)
         );
 
-        console.log("✅ Nhà hàng của user:", myRestaurants);
+        // console.log("✅ Nhà hàng của user:", myRestaurants);
 
         if (myRestaurants.length === 0) {
           setRestaurant(null);

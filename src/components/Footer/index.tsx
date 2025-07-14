@@ -8,7 +8,7 @@ import {
   MailOutlined,
 } from "@ant-design/icons";
 import { SiTiktok } from "react-icons/si";
-import styles from "@/components/Footer/styles.module.scss"
+import styles from "@/components/Footer/styles.module.scss";
 
 console.log("Styles loaded: ", styles);
 
@@ -22,6 +22,7 @@ const Footer = () => {
             <span>Liên Hệ Với Chúng Tôi</span>
             <hr />
           </div>
+
           <div className={styles.blockAddress}>
             <Link href="/" className={styles.linkAddress}>
               <EnvironmentOutlined style={{ marginRight: 10 }} />
