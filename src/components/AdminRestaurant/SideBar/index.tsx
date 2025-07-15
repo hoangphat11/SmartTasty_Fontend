@@ -1,13 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import styles from "./styles.module.scss";
 import PersonIcon from "@mui/icons-material/Person";
 import SpaceDashboardIcon from "@mui/icons-material/SpaceDashboard";
+import { Button } from "antd"; // ✅ import AntD Button
 
 const Index = () => {
   const pathname = usePathname();
+  const router = useRouter(); // ✅ khai báo router
 
   return (
     <div className={styles.sidebar}>
@@ -35,13 +37,13 @@ const Index = () => {
           </div>
           <ul className={styles.submenu}>
             <li>
-              <Link href="/">Món ĂN</Link>
+              <Link href="/">Món Ăn</Link>
             </li>
             <li>
               <Link href="/">Bàn đã đặt</Link>
             </li>
             <li>
-              <Link href="/informations">Thông Tin Quán</Link>
+            <Link href="/informations">Thông Tin Nhà Hàng</Link>
             </li>
           </ul>
         </li>

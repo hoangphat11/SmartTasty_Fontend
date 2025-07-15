@@ -89,7 +89,6 @@ const LoginPage = () => {
   };
 
   return (
-
     <div className={styles.loginContainer}>
       <Card className={styles.loginCard}>
         <Title level={2} style={{ textAlign: "center" }}>

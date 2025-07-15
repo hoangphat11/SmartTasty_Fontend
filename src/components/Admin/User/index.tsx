@@ -104,7 +104,7 @@ const UserPage = () => {
         onClose={() => setOpenModal(false)}
         onSuccess={fetchUsers}
       />
-      <h2>Users</h2>
+      <span>Thông Tin User</span>
       <div
         style={{
           display: "flex",

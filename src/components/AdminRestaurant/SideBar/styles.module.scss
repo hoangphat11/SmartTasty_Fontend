@@ -1,77 +1,92 @@
 .sidebar {
   width: 250px;
   height: 100vh;
-  background: #f8fafc;
-  padding: 20px;
+  background-color: #ffffff;
+  padding: 24px 16px;
   display: flex;
   flex-direction: column;
-  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
-}
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
+  border-right: 1px solid #e5e7eb;
+  font-family: 'Segoe UI', sans-serif;
 
-.logo {
-  font-size: 24px;
-  font-weight: bold;
-  margin-bottom: 20px;
-  text-align: center;
-}
-
-.menu {
-  list-style: none;
-  padding: 0;
-
-  li {
-    margin: 10px 0;
-    padding: 10px;
-    border-radius: 8px;
-    transition: background 0.3s;
-    position: relative;
-
-    a {
-      text-decoration: none;
-      color: #333;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    &:hover,
-    &.active {
-      background: #e2e8f0;
-    }
+  .logo {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 32px;
+    text-align: center;
+    color: #1e293b;
   }
 
-  .hasSubmenu {
-    .linkWithHover {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      cursor: pointer;
-    }
+  .menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
 
-    .submenu {
-      display: none;
-      list-style: none;
-      padding-left: 20px;
-      margin-top: 5px;
+    li {
+      margin-bottom: 8px;
+      border-radius: 6px;
+      transition: background-color 0.3s, color 0.3s;
+      overflow: hidden;
 
-      li {
-        margin: 5px 0;
-        padding: 5px;
-        border-radius: 4px;
+      a,
+      .linkWithHover {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 14px;
+        color: #334155;
+        text-decoration: none;
+        font-weight: 500;
+        border-radius: 6px;
+        transition: all 0.3s ease;
 
-        a {
-          color: #555;
-          font-size: 14px;
+        svg {
+          font-size: 20px;
         }
 
         &:hover {
-          background: #dbeafe;
+          background-color: #f1f5f9;
+          color: #1e293b;
         }
       }
-    }
 
-    &:hover .submenu {
-      display: block;
+      &.active a,
+      &.active .linkWithHover {
+        background-color: #e0f2fe;
+        color: #0284c7;
+        font-weight: 600;
+      }
+
+      &.hasSubmenu {
+        .submenu {
+          list-style: none;
+          padding-left: 28px;
+          margin-top: 6px;
+          display: none;
+
+          li {
+            margin-bottom: 6px;
+
+            a {
+              display: block;
+              padding: 6px 10px;
+              font-size: 14px;
+              color: #64748b;
+              border-radius: 4px;
+              transition: background-color 0.2s;
+
+              &:hover {
+                background-color: #f0f9ff;
+                color: #0ea5e9;
+              }
+            }
+          }
+        }
+
+        &:hover .submenu {
+          display: block;
+        }
+      }
     }
   }
 }

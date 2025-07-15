@@ -26,9 +26,9 @@ const UserPage = () => {
       const allUsers: User[] = res.data.data || [];
       const filteredUsers = allUsers.filter((user) => user.role === "business");
       setUsers(filteredUsers);
-      console.log("abc", filteredUsers);
+    //  console.log("abc", filteredUsers);
     } catch (error) {
-      console.log("loi", error);
+    //  console.log("loi", error);
       toast.error("Không thể lấy danh sách người dùng!");
     }
   };
@@ -44,7 +44,7 @@ const UserPage = () => {
       fetchUsers();
     } catch (error) {
       toast.error("Xoá thất bại!");
-      console.log("abc:", userId);
+    //  console.log("abc:", userId);
     }
   };
 
@@ -119,13 +119,13 @@ const UserPage = () => {
           onChange={(e) => setSearch(e.target.value)}
           style={{ width: 250 }}
         />
-        <Button
+        {/* <Button
           type="primary"
           icon={<PlusOutlined />}
           onClick={() => setOpenModal(true)}
         >
           Thêm
-        </Button>
+        </Button> */}
       </div>
       <Table
         bordered

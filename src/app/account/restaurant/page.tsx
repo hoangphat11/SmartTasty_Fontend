@@ -1,11 +1,10 @@
 import React from "react";
-import Informations from "@/screens/AdminRestaurant/Informations";
+import Restaurant from "@/screens/AdminRestaurant/Restaurant";
 
 const page = () => {
   return (
     <>
-      <Informations />
-
+      <Restaurant />
     </>
   );
 };
