@@ -1,13 +1,14 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
-import axios from "axios";
 import { useSearchParams, useRouter } from "next/navigation";
+import { useLocale } from "@/context/locale";
+import axios from "axios";
 import dayjs from "dayjs";
-import { useLocale } from "@/context/Locale";
-import Pagination from "@/components/layouts/Pagination/Pagination";
-import LoadingOverlay from "@/components/layouts/LoadingOverlay/LoadingOverlay";
-import ScrollableBox from "@/components/layouts/ScrollableBox/ScrollableBox";
+import LoadingOverlay from "@/components/layouts/loadingOverlay";
+import Pagination from "@/components/layouts/pagination";
+import ScrollableBox from "@/components/layouts/scrollableBox";
+import TableCellCentered from "@/components/layouts/tableCellCentered";
 import type { Account, HistoryData } from "@/types/forcesell";
 
 export default function ForceSellHistory() {
@@ -18,17 +19,18 @@ export default function ForceSellHistory() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
+  const [currentPage, setCurrentPage] = useState(
+    parseInt(searchParams.get("pageH") || "1", 10)
+  );
+
   const [loading, setLoading] = useState(false);
   const [request, setRequest] = useState<Account[]>([]);
   const [history, setHistory] = useState<HistoryData>();
-  const [page, setPage] = useState(1);
   const [totalPage, setTotalPage] = useState(1);
   const [totalItem, setTotalItem] = useState(0);
   const [ordinalId, setOrdinalId] = useState(0);
 
-  const currentPage = parseInt(searchParams.get("page") || "1");
-
-  const fetch = useCallback(async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       const response = await axios.get(
@@ -39,11 +41,10 @@ export default function ForceSellHistory() {
         }
       );
 
-      const { data, pagination } = response.data;
+      const { account, history, pagination } = response.data.data;
 
-      setRequest(data.account || []);
-      setHistory(data.history || {});
-      setPage(pagination?.current_page || 1);
+      setRequest(account || []);
+      setHistory(history || {});
       setTotalPage(pagination?.total || 1);
       setTotalItem(pagination?.total_item || 0);
       setOrdinalId((pagination?.current_page - 1) * pagination?.per_page);
@@ -55,10 +56,8 @@ export default function ForceSellHistory() {
   }, [currentPage]);
 
   useEffect(() => {
-    fetch();
-    const interval = setInterval(fetch, 60000);
-    return () => clearInterval(interval);
-  }, [fetch]);
+    fetchData();
+  }, [fetchData, currentPage]);
 
   const toHourString = (value: string, format = "HH:mm") => {
     return value ? dayjs(value).format(format) : "--";
@@ -69,7 +68,11 @@ export default function ForceSellHistory() {
   };
 
   const handlePageChange = (newPage: number) => {
-    router.push(`?page=${newPage}`);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("pageH", newPage.toString());
+    params.set("tab", "history");
+    router.push(`?${params.toString()}`);
+    setCurrentPage(newPage);
   };
 
   return (
@@ -98,7 +101,7 @@ export default function ForceSellHistory() {
               ].map((key) => (
                 <th
                   key={key}
-                  className="p-2 text-left text-xs font-bold uppercase tracking-wider text-[var(--text-color)]"
+                  className="p-2 py-6 text-center text-xs font-bold uppercase tracking-wider text-[var(--text-color)] whitespace-nowrap"
                 >
                   {t(key)}
                 </th>
@@ -115,54 +118,34 @@ export default function ForceSellHistory() {
                     : ""
                 }
               >
-                <td className="px-2 py-1 text-center text-[var(--text-color)]">
-                  {ordinalId + i + 1}
-                </td>
-                <td
-                  className={`px-2 py-1 text-[var(--text-color)] ${
-                    data.option?.highlight?.includes("trading_code")
-                      ? "bg-secondary"
-                      : ""
-                  }`}
-                >
-                  {data.trading_code}
-                </td>
-                <td className="px-2 py-1 text-[var(--text-color)]">
-                  {data.status_note}
-                </td>
-                <td className="px-2 py-1 text-[var(--text-color)]">
-                  {toHourString(data.call_time, "HH:mm")}
-                </td>
-                <td className="px-2 py-1 text-[var(--text-color)]">
+                <TableCellCentered>{ordinalId + i + 1}</TableCellCentered>
+                <TableCellCentered>{data.trading_code}</TableCellCentered>
+                <TableCellCentered>{data.status_note}</TableCellCentered>
+                <TableCellCentered>
+                  {toHourString(data.call_time)}
+                </TableCellCentered>
+                <TableCellCentered className="max-w-[240px]">
                   {data.note}
-                </td>
-                <td className="px-2 py-1 text-[var(--text-color)]">
-                  {data.customer_name}
-                </td>
-                <td className="px-2 py-1 text-right text-[var(--text-color)]">
-                  {data.mr_actual_rate}
-                </td>
-                <td className="px-2 py-1 text-right text-[var(--text-color)]">
-                  {data.dp_actual_rate}
-                </td>
-                <td className="px-2 py-1 text-right text-[var(--text-color)]">
+                </TableCellCentered>
+                <TableCellCentered>{data.customer_name}</TableCellCentered>
+                <TableCellCentered>{data.mr_actual_rate}</TableCellCentered>
+                <TableCellCentered>{data.dp_actual_rate}</TableCellCentered>
+                <TableCellCentered>
                   {formatNumber(data.deposit_cash_all)}
-                </td>
-                <td className="px-2 py-1 text-right text-[var(--text-color)]">
+                </TableCellCentered>
+                <TableCellCentered>
                   {formatNumber(data.deposit_cash_85)}
-                </td>
-                <td className="px-2 py-1 text-right text-[var(--text-color)]">
+                </TableCellCentered>
+                <TableCellCentered>
                   {formatNumber(data.cash_to_dp)}
-                </td>
-                <td className="px-2 py-1 text-right text-[var(--text-color)]">
+                </TableCellCentered>
+                <TableCellCentered>
                   {formatNumber(data.quota_loan)}
-                </td>
-                <td className="px-2 py-1 text-right text-[var(--text-color)]">
+                </TableCellCentered>
+                <TableCellCentered>
                   {formatNumber(data.overdue_debt)}
-                </td>
-                <td className="px-2 py-1 text-[var(--text-color)]">
-                  {data.broker_name}
-                </td>
+                </TableCellCentered>
+                <TableCellCentered>{data.broker_name}</TableCellCentered>
               </tr>
             ))}
           </tbody>
@@ -172,7 +155,7 @@ export default function ForceSellHistory() {
       <div className="mt-4 text-center">
         {!loading && (
           <Pagination
-            currentPage={page}
+            currentPage={currentPage}
             totalPage={totalPage}
             onPageChange={handlePageChange}
           />

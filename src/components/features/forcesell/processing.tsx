@@ -2,12 +2,13 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useLocale } from "@/context/Locale";
+import { useLocale } from "@/context/locale";
 import axios from "axios";
 import dayjs from "dayjs";
-import LoadingOverlay from "@/components/layouts/LoadingOverlay/LoadingOverlay";
-import Pagination from "@/components/layouts/Pagination/Pagination";
-import ScrollableBox from "@/components/layouts/ScrollableBox/ScrollableBox";
+import LoadingOverlay from "@/components/layouts/loadingOverlay";
+import Pagination from "@/components/layouts/pagination";
+import ScrollableBox from "@/components/layouts/scrollableBox";
+import TableCellCentered from "@/components/layouts/tableCellCentered";
 import type { Account, HistoryData } from "@/types/forcesell";
 
 export default function ForceSellAccounts() {
@@ -16,7 +17,6 @@ export default function ForceSellAccounts() {
 
   const searchParams = useSearchParams();
   const router = useRouter();
-  const currentPage = parseInt(searchParams.get("page") || "1", 10);
 
   const [loading, setLoading] = useState(false);
   const [request, setRequest] = useState<Account[]>([]);
@@ -26,29 +26,39 @@ export default function ForceSellAccounts() {
   const [ordinalId, setOrdinalId] = useState(0);
 
   const fetchData = useCallback(async () => {
-    setLoading(true);
+    const pageA = parseInt(searchParams.get("pageA") || "1", 10);
 
+    setLoading(true);
     try {
       const response = await axios.get(
         `${process.env.NEXT_PUBLIC_API_BASE}/fs/accounts/today`,
         {
-          params: { page: currentPage },
+          params: { page: pageA },
           withCredentials: true,
         }
       );
 
-      const data = response.data;
+      const data = response.data.data;
       setRequest(data.account || []);
       setHistory(data.history || {});
       setTotalPage(data.pagination?.total || 1);
       setTotalItem(data.pagination?.total_item || 0);
-      setOrdinalId((currentPage - 1) * data.pagination?.per_page);
+      setOrdinalId(
+        (data.pagination?.current_page - 1) * data.pagination?.per_page
+      );
     } catch (e) {
       console.error("Error fetching data:", e);
     } finally {
       setLoading(false);
     }
-  }, [currentPage]);
+  }, [searchParams]);
+
+  useEffect(() => {
+    fetchData();
+
+    const interval = setInterval(fetchData, 60000);
+    return () => clearInterval(interval);
+  }, [fetchData]);
 
   const toHourString = (value: string, format = "HH:mm") => {
     return value ? dayjs(value).format(format) : "--";
@@ -59,14 +69,13 @@ export default function ForceSellAccounts() {
   };
 
   const handlePageChange = (newPage: number) => {
-    router.push(`?page=${newPage}`);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("pageA", newPage.toString());
+    params.set("tab", "process");
+    router.push(`?${params.toString()}`);
   };
 
-  useEffect(() => {
-    fetchData();
-    const interval = setInterval(fetchData, 60000);
-    return () => clearInterval(interval);
-  }, [fetchData]);
+  const currentPage = parseInt(searchParams.get("pageA") || "1", 10);
 
   return (
     <div className="relative">
@@ -93,7 +102,7 @@ export default function ForceSellAccounts() {
               ].map((key) => (
                 <th
                   key={key}
-                  className="p-2 text-left text-xs font-bold uppercase tracking-wider text-[var(--text-color)]"
+                  className="p-2 py-6 text-center text-xs font-bold uppercase tracking-wider text-[var(--text-color)] whitespace-nowrap"
                 >
                   {t(key)}
                 </th>
@@ -103,52 +112,38 @@ export default function ForceSellAccounts() {
           <tbody className="bg-[var(--background)] divide-y">
             {request.map((data, i) => (
               <tr
-                key={i}
+                key={data.id}
                 className={
                   data.option?.highlight?.includes("*")
                     ? "bg-primary text-[var(--text-color)]"
                     : ""
                 }
               >
-                <td className="px-2 py-1 text-center text-[var(--text-color)]">
-                  {ordinalId + i + 1}
-                </td>
-                <td className="px-2 py-1 text-[var(--text-color)]">
-                  {data.trading_code}
-                </td>
-                <td className="px-2 py-1 text-[var(--text-color)]">
-                  {data.status_note}
-                </td>
-                <td className="px-2 py-1 text-[var(--text-color)]">
+                <TableCellCentered>{ordinalId + i + 1}</TableCellCentered>
+                <TableCellCentered>{data.trading_code}</TableCellCentered>
+                <TableCellCentered>{data.status_note}</TableCellCentered>
+                <TableCellCentered>
                   {toHourString(data.call_time)}
-                </td>
-                <td className="px-2 py-1 text-[var(--text-color)]">
-                  {data.customer_name}
-                </td>
-                <td className="px-2 py-1 text-right text-[var(--text-color)]">
-                  {data.mr_actual_rate}
-                </td>
-                <td className="px-2 py-1 text-right text-[var(--text-color)]">
-                  {data.dp_actual_rate}
-                </td>
-                <td className="px-2 py-1 text-right text-[var(--text-color)]">
+                </TableCellCentered>
+                <TableCellCentered>{data.customer_name}</TableCellCentered>
+                <TableCellCentered>{data.mr_actual_rate}</TableCellCentered>
+                <TableCellCentered>{data.dp_actual_rate}</TableCellCentered>
+                <TableCellCentered>
                   {formatNumber(data.deposit_cash_all)}
-                </td>
-                <td className="px-2 py-1 text-right text-[var(--text-color)]">
+                </TableCellCentered>
+                <TableCellCentered>
                   {formatNumber(data.deposit_cash_85)}
-                </td>
-                <td className="px-2 py-1 text-right text-[var(--text-color)]">
+                </TableCellCentered>
+                <TableCellCentered>
                   {formatNumber(data.cash_to_dp)}
-                </td>
-                <td className="px-2 py-1 text-right text-[var(--text-color)]">
+                </TableCellCentered>
+                <TableCellCentered>
                   {formatNumber(data.quota_loan)}
-                </td>
-                <td className="px-2 py-1 text-right text-[var(--text-color)]">
+                </TableCellCentered>
+                <TableCellCentered>
                   {formatNumber(data.overdue_debt)}
-                </td>
-                <td className="px-2 py-1 text-[var(--text-color)]">
-                  {data.broker_name}
-                </td>
+                </TableCellCentered>
+                <TableCellCentered>{data.broker_name}</TableCellCentered>
               </tr>
             ))}
           </tbody>
