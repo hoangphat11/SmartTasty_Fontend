@@ -4,11 +4,12 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useLocale } from "@/context/locale";
 import axios from "axios";
-import dayjs from "dayjs";
-import LoadingOverlay from "@/components/layouts/loadingOverlay";
-import Pagination from "@/components/layouts/pagination";
-import ScrollableBox from "@/components/layouts/scrollableBox";
-import TableCellCentered from "@/components/layouts/tableCellCentered";
+import LoadingOverlay from "@/components/commons/loadingOverlay";
+import Pagination from "@/components/commons/pagination";
+import ScrollableBox from "@/components/commons/scrollableBox";
+import TableCellCentered from "@/components/commons/tableCellCentered";
+import formatNumber from "@/lib/utils/formatNumber";
+import toHourString from "@/lib/utils/toHourString";
 import type { Account, HistoryData } from "@/types/forcesell";
 
 export default function ForceSellHistory() {
@@ -58,14 +59,6 @@ export default function ForceSellHistory() {
   useEffect(() => {
     fetchData();
   }, [fetchData, currentPage]);
-
-  const toHourString = (value: string, format = "HH:mm") => {
-    return value ? dayjs(value).format(format) : "--";
-  };
-
-  const formatNumber = (value: number) => {
-    return typeof value === "number" ? value.toLocaleString() : "--";
-  };
 
   const handlePageChange = (newPage: number) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -128,22 +121,26 @@ export default function ForceSellHistory() {
                   {data.note}
                 </TableCellCentered>
                 <TableCellCentered>{data.customer_name}</TableCellCentered>
-                <TableCellCentered>{data.mr_actual_rate}</TableCellCentered>
-                <TableCellCentered>{data.dp_actual_rate}</TableCellCentered>
                 <TableCellCentered>
-                  {formatNumber(data.deposit_cash_all)}
+                  {formatNumber(data.mr_actual_rate, false, { precision: 2 })}
                 </TableCellCentered>
                 <TableCellCentered>
-                  {formatNumber(data.deposit_cash_85)}
+                  {formatNumber(data.dp_actual_rate, false, { precision: 2 })}
                 </TableCellCentered>
                 <TableCellCentered>
-                  {formatNumber(data.cash_to_dp)}
+                  {formatNumber(data.deposit_cash_all, false, { precision: 0 })}
                 </TableCellCentered>
                 <TableCellCentered>
-                  {formatNumber(data.quota_loan)}
+                  {formatNumber(data.deposit_cash_85, false, { precision: 0 })}
                 </TableCellCentered>
                 <TableCellCentered>
-                  {formatNumber(data.overdue_debt)}
+                  {formatNumber(data.cash_to_dp, false, { precision: 0 })}
+                </TableCellCentered>
+                <TableCellCentered>
+                  {formatNumber(data.quota_loan, false, { precision: 0 })}
+                </TableCellCentered>
+                <TableCellCentered>
+                  {formatNumber(data.overdue_debt, false, { precision: 0 })}
                 </TableCellCentered>
                 <TableCellCentered>{data.broker_name}</TableCellCentered>
               </tr>

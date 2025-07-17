@@ -1,4 +1,4 @@
-import Enums, { I18N_ENUM } from "@/lib/utils/enums/Enums";
+import Enums, { I18N_ENUM } from "@/lib/utils/enums/enum";
 
 export default class StatusType extends Enums {
   static PROCESSING = 1;

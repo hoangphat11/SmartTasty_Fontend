@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { CircularProgress } from "@mui/material";
-import { useLocale } from "@/context/Locale";
+import { useLocale } from "@/context/locale";
 
 interface CarebyItem {
   CAREBY: string;

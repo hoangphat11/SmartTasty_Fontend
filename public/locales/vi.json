@@ -10,17 +10,15 @@
   "dark_theme_title": "Giao diện tối",
   "light_theme_title": "Giao diện sáng",
 
-  "gamification": "Game",
-
   "accomplishment_title": "Thành tích",
   "account_management": "Quản lý khách hàng",
   "suggest": "Đề xuất",
   "support": "Hỗ trợ",
 
   "header_title": "Danh Sách Tài Khoản Cần Xử Lý Bán",
-  "back_btn": "Trở Về",
-  "id": "STT",
   "account_number": "tài khoản",
+  "id": "STT",
+  "back_btn": "Trở Về",
   "force_sell_status": "Tình Trạng Force Sell",
   "status": "Trạng Thái Xử Lý",
   "in_process": "Trong hạn xử lý",

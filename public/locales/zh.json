@@ -10,7 +10,6 @@
   "dark_theme_title": "深色界面",
   "light_theme_title": "明亮界面",
 
-  "home_title": "首頁",
   "accomplishment_title": "成就",
   "account_management": "客户管理",
   "suggest": "建議",
@@ -31,6 +30,7 @@
   "overdue_margin_debt_dp": "逾期保证金债务 + DP",
   "broker_name": "经纪人姓名",
   "time_request": "数据更新时间：{time}",
+  "total_record": "账户总数",
 
   "account": "账户",
   "margin_limit": "保证金限额",
@@ -50,8 +50,8 @@
   "data_not_found": "未找到该账户的数据，请检查后再试。",
   "unexpected_error_message": "发生错误，请重试。",
 
-  "business_goal_header_title": "Thành Tích Kinh Doanh",
-  "business_goal_dashboard_lm": "Thành Tích Chi Nhánh",
+  "business_goal_header_title": "业务绩效",
+  "business_goal_dashboard_lm": "分支机构绩效",
 
   "login_header_title": "客戶門戶",
   "login_forget_password": "忘記密碼",
@@ -72,5 +72,10 @@
 
   "account_header_title": "客户管理",
   "account_force_sell_list": "强制出售的账户列表",
-  "account_t0_limit": "查询T0额度"
+  "account_t0_limit": "查询T0额度",
+
+  "forcesell_tab_process": "處理中",
+  "forcesell_tab_history": "歷史記錄",
+  "forcesell_process_subtitle": "處理中的帳戶",
+  "forcesell_history_subtitle": "當日啟動的帳戶"
 }

@@ -1,10 +1,14 @@
 "use client";
 
-import BpHeading3 from "@/components/commons/Headings/BpHeading3";
-import BpHeading4 from "@/components/commons/Headings/BpHeading4";
+import React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useLocale } from "@/context/Locale";
+import clsx from "clsx";
+
+import BpCard from "@/components/commons/card/bpCard";
+import BpHeading3 from "@/components/commons/headings/bpHeading3";
+import BpHeading4 from "@/components/commons/headings/bpHeading4";
+import { useLocale } from "@/context/locale";
 import { useBrokerStore } from "@/store/auth/useBrokerStore";
 
 const lmAllowList = [
@@ -31,7 +35,7 @@ export default function BusinessGoalPage() {
       ? "https://report.phs.vn/reports/powerbi/BMD/Dashboard/Truc/Demo/Bi%E1%BB%83u%20%C4%91%E1%BB%93%20th%C3%A0nh%20t%C3%ADch%20kinh%20doanh%20-%20Demo"
       : "https://report.phs.vn/reports/powerbi/BMD/Dashboard/Bi%E1%BB%83u%20%C4%91%E1%BB%93%20th%C3%A0nh%20t%C3%ADch%20kinh%20doanh";
 
-  const CardWrapper = ({
+  const CardItem = ({
     href,
     imgSrc,
     title,
@@ -41,7 +45,12 @@ export default function BusinessGoalPage() {
     title: string;
   }) => (
     <Link href={href} target="_blank" rel="noopener noreferrer">
-      <div className="relative h-full cursor-pointer rounded-lg border border-border bg-background px-6 py-6 text-center transition-all duration-300 hover:border-green-600 hover:bg-[#F4F9F1] hover:drop-shadow-lg dark:hover:bg-slate-700">
+      <BpCard
+        contentClass={clsx(
+          "relative text-center pt-2 pb-6 px-4",
+          "hover:border-green-600 hover:drop-shadow-lg dark:hover:bg-slate-700 cursor-pointer"
+        )}
+      >
         <Image
           src={imgSrc}
           alt="goal"
@@ -51,7 +60,7 @@ export default function BusinessGoalPage() {
         />
         <BpHeading4
           title={title}
-          bold={true}
+          bold
           className="text-[var(--text-title-color)] text-lg"
         />
         <div className="absolute top-0 left-0">
@@ -62,7 +71,7 @@ export default function BusinessGoalPage() {
             height={76}
           />
         </div>
-      </div>
+      </BpCard>
     </Link>
   );
 
@@ -71,12 +80,12 @@ export default function BusinessGoalPage() {
       <BpHeading3
         title={t("business_goal_header_title")}
         bold={true}
-        className="mb-4 text-2xl bold text-[var(--text-title-color)]"
+        className="mb-4 text-2xl text-[var(--text-title-color)]"
       />
 
-      <div className="grid relative mt-4 grid-cols-2 gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-2 lg:grid-cols-3">
         {/* Card 1: Thành tích kinh doanh */}
-        <CardWrapper
+        <CardItem
           href={powerBiLink}
           imgSrc="/img/commons/goal.svg"
           title={t("business_goal_dashboard_lm")}
@@ -84,17 +93,17 @@ export default function BusinessGoalPage() {
 
         {/* Card 2: Dashboard LM nếu được phép */}
         {lmDashBoardAvailable ? (
-          <CardWrapper
+          <CardItem
             href="https://report.phs.vn/reports/report/BMD/Dashboard/Dashboard%20LM"
             imgSrc="/img/commons/goal-lm.svg"
             title={t("business_goal_dashboard_lm")}
           />
         ) : (
-          <div className="relative h-full rounded-lg border border-border bg-background px-6 py-6 dark:border-slate-600 dark:bg-slate-800"></div>
+          <BpCard contentClass="h-full px-4 py-6 dark:bg-slate-800 dark:border-slate-600" />
         )}
 
-        {/* Card 3: placeholder */}
-        <div className="h-full rounded-lg border border-border bg-background p-3.5 dark:border-slate-600 dark:bg-slate-800"></div>
+        {/* Card 3: Placeholder nếu muốn thêm mục khác */}
+        {/* <BpCard contentClass="h-full px-4 py-6 dark:bg-slate-800 dark:border-slate-600" /> */}
       </div>
     </div>
   );

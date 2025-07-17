@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useBrokerStore } from "@/store/auth/useBrokerStore";
-import { useLocale } from "@/context/Locale";
+import { useLocale } from "@/context/locale";
 
 export default function TokenLoginPage() {
   const searchParams = useSearchParams();

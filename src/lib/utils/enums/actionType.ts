@@ -1,5 +1,4 @@
-// src/enums/ActionType.ts
-import Enums, { I18N_ENUM } from "@/lib/utils/enums/Enums";
+import Enums, { I18N_ENUM } from "@/lib/utils/enums/enum";
 
 export default class ActionType extends Enums {
   static NONE = 0;

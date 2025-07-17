@@ -6,12 +6,12 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import axios from "axios";
 import debounce from "lodash.debounce";
-import { useLocale } from "@/context/Locale";
+import { useLocale } from "@/context/locale";
 import formatNumber from "@/lib/utils/formatNumber";
-import LoadingOverlay from "@/components/layouts/LoadingOverlay/LoadingOverlay";
+import LoadingOverlay from "@/components/commons/loadingOverlay";
 import { useAlertStore } from "@/store/notification/useAlertStore";
-import AutoCompleteInput from "@/components/layouts/AutoCompleteInput/AutoCompleteInput";
-import NumberInput from "@/components/commons/inputs/NumberInput";
+import AutoCompleteInput from "@/components/commons/autoCompleteInput";
+import NumberInput from "@/components/commons/inputs/numberInput";
 
 interface Customer {
   targetAcc: string;
@@ -181,7 +181,7 @@ export default function T0LimitForm() {
       {loading && <LoadingOverlay />}
 
       <div className="bg-background p-3 mb-4 rounded-md flex items-center gap-x-3">
-        <div className="text-xl font-bold">{t("account")}</div>
+        <div className="text-xl font-bold text-text-title">{t("account")}</div>
         <div className="w-1/2">
           <AutoCompleteInput
             value={inputValue}

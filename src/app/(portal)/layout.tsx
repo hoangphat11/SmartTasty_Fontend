@@ -1,8 +1,8 @@
 "use client";
 
-import Header from "@/components/layouts/Header/header";
-import Sidebar from "@/components/layouts/SideBar/SideBar";
-import AlertSnackbar from "@/components/layouts/Snackbar/Snackbar";
+import Header from "@/components/layouts/header";
+import Sidebar from "@/components/layouts/sideBar";
+import AlertSnackbar from "@/components/layouts/snackBar";
 
 export default function BrokerPortalLayout({
   children,
@@ -10,7 +10,7 @@ export default function BrokerPortalLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-gray-50 transition-colors dark:bg-slate-900 min-h-screen">
+    <div className="bg-background transition-colors min-h-screen">
       <Header />
 
       <main className="relative md:flex">

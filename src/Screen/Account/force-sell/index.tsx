@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { useLocale } from "@/context/Locale";
+import { useState, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { useLocale } from "@/context/locale";
 import BppForceSellProcessing from "@/components/features/forcesell/processing";
 import BppForceSellHistory from "@/components/features/forcesell/history";
 
@@ -9,7 +10,31 @@ export default function ForceSellPage() {
   const { messages } = useLocale();
   const t = (key: string) => messages[key] || key;
 
-  const [activeTab, setActiveTab] = useState<"process" | "history">("process");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const currentTab = searchParams.get("tab") || "process";
+  const [activeTab, setActiveTab] = useState<"process" | "history">(
+    currentTab === "history" ? "history" : "process"
+  );
+
+  const changeTab = (tab: "process" | "history") => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("tab", tab);
+    if (tab === "process") {
+      params.set("pageA", "1"); // Reset trang
+    } else {
+      params.set("pageH", "1");
+    }
+    router.push(`?${params.toString()}`);
+    setActiveTab(tab);
+  };
+
+  useEffect(() => {
+    if (currentTab !== activeTab) {
+      setActiveTab(currentTab === "history" ? "history" : "process");
+    }
+  }, [activeTab, currentTab]);
 
   return (
     <div>
@@ -21,7 +46,7 @@ export default function ForceSellPage() {
               ? "text-green-600 border-b-2 border-green-600"
               : "text-gray-500"
           }`}
-          onClick={() => setActiveTab("process")}
+          onClick={() => changeTab("process")}
           title={t("forcesell_process_subtitle")}
         >
           {t("forcesell_tab_process")}
@@ -32,7 +57,7 @@ export default function ForceSellPage() {
               ? "text-green-600 border-b-2 border-green-600"
               : "text-gray-500"
           }`}
-          onClick={() => setActiveTab("history")}
+          onClick={() => changeTab("history")}
           title={t("forcesell_history_subtitle")}
         >
           {t("forcesell_tab_history")}

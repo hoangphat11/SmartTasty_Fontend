@@ -1,6 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
+    "./src/app/**/*.{js,ts,jsx,tsx}",
     "./src/components/**/*.{js,ts,jsx,tsx}",
     "./src/Screen/**/*.{js,ts,jsx,tsx}",
   ],
@@ -12,6 +13,7 @@ module.exports = {
       },
       colors: {
         background: "var(--background)",
+        "background-phs": "var(--background-phs)",
         text: "var(--text-color)",
         "text-title": "var(--text-title-color)",
         button: "var(--button-bg)",

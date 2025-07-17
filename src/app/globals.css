@@ -5,6 +5,8 @@
 :root {
   --background-light: #ffffff;
   --background-dark: #121212;
+  --background-light-phs: #326233;
+  --background-dark-phs: #1a2d1a;
   --text-light: #000000;
   --text-dark: #ffffff;
   --text-title-light: #ff8c00;
@@ -25,6 +27,7 @@
 
 [data-theme="light"] {
   --background: var(--background-light);
+  --background-phs: var(--background-light-phs);
   --text-color: var(--text-light);
   --text-title-color: var(--text-title-light);
   --button-bg: var(--button-light);
@@ -38,6 +41,7 @@
 
 [data-theme="dark"] {
   --background: var(--background-dark);
+  --background-phs: var(--background-dark-phs);
   --text-color: var(--text-dark);
   --text-title-color: var(--text-title-dark);
   --button-bg: var(--button-dark);

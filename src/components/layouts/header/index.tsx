@@ -1,6 +1,6 @@
 "use client";
 
-import Nav from "./NavBar";
+import Nav from "@/components/layouts/header/navBar/index";
 
 export default function Header() {
   return (

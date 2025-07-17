@@ -1,7 +1,7 @@
 import { headers } from "next/headers";
 import { ReactNode } from "react";
 import "./globals.css";
-import { LocaleProvider } from "@/context/Locale";
+import { LocaleProvider } from "@/context/locale";
 import LayoutClient from "@/app/LayoutClient";
 import { Roboto } from "next/font/google";
 

@@ -13,11 +13,11 @@ export default function T0LimitPage() {
 
   useEffect(() => {
     if (!broker) {
-      router.replace("/login"); // auth middleware tương đương
+      router.replace("/login");
     }
 
     if (!featT0Limit) {
-      router.replace("/404"); // feat-available middleware tương đương
+      router.replace("/404");
     }
   }, [broker, featT0Limit, router]);
 

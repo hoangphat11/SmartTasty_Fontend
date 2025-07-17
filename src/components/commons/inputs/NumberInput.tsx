@@ -42,6 +42,7 @@ export default function NumberInput({
       const formatted = formatValue(value);
       setInputValue(String(formatted ?? ""));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value]);
 
   const formatValue = (val: number | string | null | undefined) => {

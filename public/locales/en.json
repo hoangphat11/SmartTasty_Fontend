@@ -33,6 +33,7 @@
   "overdue_margin_debt_dp": "Overdue Margin Debt + DP",
   "broker_name": "Managing Broker",
   "time_request": "Data last updated: {time}",
+  "total_record": "Total Accounts",
 
   "account": "Account",
   "margin_limit": "Margin limit",
@@ -52,8 +53,8 @@
   "data_not_found": "No data found for this account. Please check again.",
   "unexpected_error_message": "An error occurred. Please try again.",
 
-  "business_goal_header_title": "Thành Tích Kinh Doanh",
-  "business_goal_dashboard_lm": "Thành Tích Chi Nhánh",
+  "business_goal_header_title": "Business Performance",
+  "business_goal_dashboard_lm": "Branch Performance",
 
   "login_header_title": "BROKER PORTAL",
   "login_forget_password": "Forgot Password",
@@ -74,5 +75,10 @@
 
   "account_header_title": "Customer Management",
   "account_force_sell_list": "List of accounts for force sell",
-  "account_t0_limit": "Check T0 limit"
+  "account_t0_limit": "Check T0 limit",
+
+  "forcesell_tab_process": "In Process",
+  "forcesell_tab_history": "History",
+  "forcesell_process_subtitle": "Accounts Under Processing",
+  "forcesell_history_subtitle": "Accounts Arising at Start of Day"
 }

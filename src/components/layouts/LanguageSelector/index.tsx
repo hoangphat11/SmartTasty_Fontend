@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useLocale } from "@/context/Locale";
+import { useLocale } from "@/context/locale";
 import LanguageIcon from "@mui/icons-material/Language";
 
 export default function LanguageSelector() {

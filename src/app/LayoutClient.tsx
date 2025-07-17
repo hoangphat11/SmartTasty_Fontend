@@ -1,6 +1,6 @@
 "use client";
 
-import Providers from "@/components/layouts/Providers";
+import Providers from "@/components/layouts/providers";
 
 export default function LayoutClient({
   children,
