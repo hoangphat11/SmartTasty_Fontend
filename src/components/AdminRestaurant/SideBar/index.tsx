@@ -37,13 +37,16 @@ const Index = () => {
           </div>
           <ul className={styles.submenu}>
             <li>
-              <Link href="/">Món Ăn</Link>
+              <Link href="/dish">Món Ăn</Link>
+            </li>
+            <li>
+              <Link href="/products">Quản lý</Link>
             </li>
             <li>
               <Link href="/">Bàn đã đặt</Link>
             </li>
             <li>
-            <Link href="/informations">Thông Tin Nhà Hàng</Link>
+              <Link href="/informations">Thông Tin Nhà Hàng</Link>
             </li>
           </ul>
         </li>

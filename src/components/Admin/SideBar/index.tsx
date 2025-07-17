@@ -40,6 +40,9 @@ const Index = () => {
             <li>
               <Link href="/admin/business">Business</Link>
             </li>
+            {/* <li>
+              <Link href="/admin/permission">Permission</Link>
+            </li> */}
           </ul>
         </li>
       </ul>
