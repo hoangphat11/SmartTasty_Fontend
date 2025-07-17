@@ -1,46 +1,51 @@
 "use client";
 
+import { useRouter, usePathname } from "next/navigation";
 import { useState } from "react";
-import { useLocale } from "@/context/locale";
 import LanguageIcon from "@mui/icons-material/Language";
 
+const locales = ["en", "vi", "zh"];
+
 export default function LanguageSelector() {
-  const { changeLocale } = useLocale();
-  const [open, setOpen] = useState(false);
+  const router = useRouter();
+  const pathname = usePathname();
+  const [isOpen, setIsOpen] = useState(false);
 
-  const toggleDropdown = () => setOpen(!open);
+  const handleChange = (locale: string) => {
+    const segments = pathname.split("/");
 
-  const handleSelect = (lang: string) => {
-    changeLocale(lang);
-    setOpen(false);
+    if (locales.includes(segments[1])) {
+      segments[1] = locale;
+    } else {
+      segments.splice(1, 0, locale);
+    }
+
+    router.replace(segments.join("/") || "/");
+    setIsOpen(false);
   };
-
-  const languages = [
-    { label: "English", value: "en" },
-    { label: "Tiếng Việt", value: "vi" },
-    { label: "中文", value: "zh" },
-  ];
 
   return (
     <div className="relative inline-block text-left">
       <button
-        onClick={toggleDropdown}
-        className="flex items-center gap-1 px-3 py-2 rounded-lg bg-button text-text border border-border hover:bg-button-hover transition"
-        aria-haspopup="true"
-        aria-expanded={open}
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-2 rounded-full bg-button border border-border text-text hover:bg-button-hover transition duration-300 ease-in-out"
       >
-        <LanguageIcon className="text-text" />
+        <LanguageIcon />
       </button>
 
-      {open && (
-        <ul className="absolute mt-1 w-28 bg-transparent text-text z-50">
-          {languages.map((lang) => (
-            <li key={lang.value}>
+      {isOpen && (
+        <ul className="absolute mt-2 w-32 bg-transparent text-text z-50 rounded-lg">
+          {locales.map((lang) => (
+            <li key={lang}>
               <button
-                onClick={() => handleSelect(lang.value)}
-                className="block w-full text-left my-1 px-4 py-2 hover:bg-button-hover text-sm transition"
+                onClick={() => handleChange(lang)}
+                className="block w-full text-left mb-1 py-2 px-4 hover:bg-button-hover text-sm rounded-md transition duration-300"
               >
-                {lang.label}
+                {lang === "vi"
+                  ? "Tiếng Việt"
+                  : lang === "en"
+                  ? "English"
+                  : "中文"}
               </button>
             </li>
           ))}

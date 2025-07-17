@@ -1,6 +1,6 @@
 import React from "react";
 import clsx from "clsx";
-import styles from "@/components/layouts/ScrollableBox/styles.module.scss";
+import styles from "@/components/commons/scrollableBox/styles.module.scss";
 
 type ScrollableBoxProps = {
   className?: string;
