@@ -4,7 +4,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { useState } from "react";
 import LanguageIcon from "@mui/icons-material/Language";
 
-const locales = ["en", "vi", "zh"];
+const locales = ["en", "vi"];
 
 export default function LanguageSelector() {
   const router = useRouter();
@@ -41,11 +41,7 @@ export default function LanguageSelector() {
                 onClick={() => handleChange(lang)}
                 className="block w-full text-left mb-1 py-2 px-4 hover:bg-button-hover text-sm rounded-md transition duration-300"
               >
-                {lang === "vi"
-                  ? "Tiếng Việt"
-                  : lang === "en"
-                  ? "English"
-                  : "中文"}
+                {lang === "vi" ? "Tiếng Việt" : "English"}
               </button>
             </li>
           ))}

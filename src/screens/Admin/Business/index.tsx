@@ -1,4 +1,4 @@
-import Business from "@/components/Admin/Business";
+import Business from "@/components/features/Admin/Business";
 
 const index = () => {
   return (

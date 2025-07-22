@@ -1,4 +1,4 @@
-import Dashboard from "@/components/Admin/Dashboard";
+import Dashboard from "@/components/features/Admin/Dashboard";
 
 const index = () => {
   return (

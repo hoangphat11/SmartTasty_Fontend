@@ -1,4 +1,4 @@
-import ResetPassword from "@/components/ResetPassword"
+import ResetPassword from "@/components/features/ResetPassword"
 
 const index = () => {
 

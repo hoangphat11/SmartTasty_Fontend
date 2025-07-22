@@ -1,6 +1,6 @@
 "use client";
 
-import Sidebar from "@/components/AdminRestaurant/SideBar";
+import Sidebar from "@/components/features/AdminRestaurant/SideBar";
 
 export default function RestaurantLayout({
   children,

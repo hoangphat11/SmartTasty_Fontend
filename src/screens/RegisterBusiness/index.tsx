@@ -1,4 +1,4 @@
-import RegisterBusiness from "@/components/RegisterBusiness";
+import RegisterBusiness from "@/components/features/RegisterBusiness";
 
 const index = () => {
   return (

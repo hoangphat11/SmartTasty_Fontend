@@ -1,5 +1,5 @@
 
-import SlideHeader from "@/components/SlideHeader"
+import SlideHeader from "@/components/layouts/SlideHeader"
 
 const index = () => {
 

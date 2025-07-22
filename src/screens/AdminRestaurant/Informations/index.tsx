@@ -1,11 +1,10 @@
-import Informations from "@/components/AdminRestaurant/Informations"
+import Informations from "@/components/features/AdminRestaurant/Informations";
 
 const index = () => {
-
   return (
     <>
-    <Informations/>
-      </>
+      <Informations />
+    </>
   );
 };
 export default index;

@@ -1,4 +1,4 @@
-import Restaurant from "@/components/AdminRestaurant/Restaurant";
+import Restaurant from "@/components/features/AdminRestaurant/Restaurant";
 
 const index = () => {
   return (

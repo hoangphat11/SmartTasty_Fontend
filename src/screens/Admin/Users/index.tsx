@@ -1,4 +1,4 @@
-import User from "@/components/Admin/User";
+import User from "@/components/features/Admin/User";
 
 const index = () => {
   return (

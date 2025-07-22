@@ -1,11 +1,10 @@
-import Products from "@/components/AdminRestaurant/Products"
+import Products from "@/components/features/AdminRestaurant/Products";
 
 const index = () => {
-
   return (
     <>
-    <Products/>
-      </>
+      <Products />
+    </>
   );
 };
 export default index;

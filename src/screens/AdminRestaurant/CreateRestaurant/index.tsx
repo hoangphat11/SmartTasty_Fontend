@@ -1,11 +1,10 @@
-import CreateRestaurant from "@/components/AdminRestaurant/CreateRestaurant"
+import CreateRestaurant from "@/components/features/AdminRestaurant/CreateRestaurant";
 
 const index = () => {
-
   return (
     <>
-    <CreateRestaurant/>
-      </>
+      <CreateRestaurant />
+    </>
   );
 };
 export default index;

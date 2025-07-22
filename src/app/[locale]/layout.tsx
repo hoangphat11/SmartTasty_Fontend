@@ -1,24 +1,38 @@
+import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
+import { Roboto } from "next/font/google";
 import LayoutClient from "@/app/LayoutClient";
-import { getMessages } from "next-intl/server";
+import BrokerPortalLayout from "@/components/layouts/LayoutWrapper";
+import "../globals.css";
 
-export default async function LocaleLayout(props: {
+const roboto = Roboto({
+  weight: ["400", "700"],
+  subsets: ["latin"],
+  variable: "--font-roboto",
+});
+
+export default async function LocaleLayout({
+  children,
+  params,
+}: {
   children: React.ReactNode;
   params: { locale: string };
 }) {
-  const { children } = props;
-  const { locale } = await Promise.resolve(props.params); // ✅ bắt buộc await
-
-  if (!routing.locales.includes(locale)) {
+  const { locale } = await params;
+  if (!hasLocale(routing.locales, locale)) {
     notFound();
   }
 
-  const messages = await getMessages();
-
   return (
-    <LayoutClient locale={locale} messages={messages}>
-      {children}
-    </LayoutClient>
+    <html lang={locale} className={`${roboto.variable} font-sans`}>
+      <body>
+        <NextIntlClientProvider locale={locale}>
+          <LayoutClient>
+            <BrokerPortalLayout>{children}</BrokerPortalLayout>
+          </LayoutClient>
+        </NextIntlClientProvider>
+      </body>
+    </html>
   );
 }

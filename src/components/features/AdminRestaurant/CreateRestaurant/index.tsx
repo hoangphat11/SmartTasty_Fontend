@@ -16,7 +16,7 @@ import styles from "./styles.module.scss";
 import { toast } from "react-toastify";
 import dynamic from "next/dynamic";
 
-const MapView = dynamic(() => import("@/components/MapView"), { ssr: false });
+const MapView = dynamic(() => import("@/components/layouts/MapView"), { ssr: false });
 
 const { Title } = Typography;
 

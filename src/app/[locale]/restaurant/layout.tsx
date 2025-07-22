@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
-import Sidebar from "@/components/AdminRestaurant/SideBar";
+import Sidebar from "@/components/features/AdminRestaurant/SideBar";
 
 interface JwtPayload {
   role: string;

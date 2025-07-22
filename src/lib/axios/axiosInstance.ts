@@ -3,11 +3,10 @@ import axios from "axios";
 
 const axiosInstance = axios.create({
   baseURL: "https://smarttasty-backend.onrender.com",
+  timeout: 60000,
   headers: {
-    "Content-Type": "application/json",
     Accept: "application/json",
   },
-  timeout: 60000,
 });
 
 // Thêm interceptor để gắn token vào header Authorization
@@ -31,7 +30,5 @@ axiosInstance.interceptors.request.use(
   },
   (error) => Promise.reject(error)
 );
-
-
 
 export default axiosInstance;
