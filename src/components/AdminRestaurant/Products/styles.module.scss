@@ -1,0 +1,35 @@
+.container {
+  padding: 24px;
+  background: #f9f9f9;
+  min-height: 100vh;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.addButton {
+  margin-bottom: 16px;
+}
+
+.tableWrapper {
+  :global(.ant-table) {
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  :global(.ant-table-thead > tr > th) {
+    background-color: #fafafa;
+    font-weight: 600;
+    color: #555;
+  }
+
+  :global(.ant-table-tbody > tr > td) {
+    font-size: 14px;
+    color: #333;
+  }
+}
