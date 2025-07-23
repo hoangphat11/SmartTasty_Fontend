@@ -10,14 +10,15 @@ import {
 } from "@mui/material";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import axiosInstance from "@/lib/axios/axiosInstance";
-import axios from "axios";
 import styles from "./styles.module.scss";
 import { toast } from "react-toastify";
+import { useAppDispatch, useAppSelector } from "@/redux/hook";
+import { createUser } from "@/redux/slices/userSlice";
 
 const RegisterBusiness = () => {
-  const [loading, setLoading] = useState(false);
+  const dispatch = useAppDispatch();
   const router = useRouter();
+  const { loading } = useAppSelector((state) => state.user);
 
   const [formValues, setFormValues] = useState({
     userName: "",
@@ -76,29 +77,22 @@ const RegisterBusiness = () => {
     e.preventDefault();
     if (!validate()) return;
 
-    setLoading(true);
     try {
-      const response = await axiosInstance.post("/api/User", {
-        ...formValues,
-        Role: "business",
-      });
+      const resultAction = await dispatch(
+        createUser({
+          ...formValues,
+          Role: "business", // 👈 Đặt role cho doanh nghiệp
+        })
+      );
 
-      const { errCode, errMessage } = response.data;
-
-      if (errCode === 0) {
-        toast.success(errMessage || "Đăng ký thành công!");
+      if (createUser.fulfilled.match(resultAction)) {
+        toast.success("Đăng ký thành công!");
         router.push("/");
       } else {
-        toast.error(errMessage || "Đăng ký thất bại!");
+        toast.error(resultAction.payload as string);
       }
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error) && error.response?.data?.errMessage) {
-        toast.error(error.response.data.errMessage);
-      } else {
-        toast.error("Có lỗi xảy ra, vui lòng thử lại!");
-      }
-    } finally {
-      setLoading(false);
+    } catch (error) {
+      toast.error("Có lỗi xảy ra, vui lòng thử lại!");
     }
   };
 

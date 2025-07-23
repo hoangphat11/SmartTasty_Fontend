@@ -1,50 +1,27 @@
+// redux/slices/userSlice.ts
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import axiosInstance from "@/lib/axios/axiosInstance";
 import { User } from "@/types/user";
 
 interface UserState {
+  users: User[];
   user: User | null;
   loading: boolean;
   error: string | null;
 }
 
 const initialState: UserState = {
+  users: [],
   user: null,
   loading: false,
   error: null,
 };
 
-// Thunk: Đăng ký
-export const registerUser = createAsyncThunk(
-  "user/registerUser",
-  async (
-    data: Partial<User> & { userPassword: string },
-    { rejectWithValue }
-  ) => {
-    try {
-      const response = await axiosInstance.post("/api/User", {
-        ...data,
-        role: "user",
-      });
-
-      if (response.data.errCode === 0) {
-        return response.data.user as User;
-      } else {
-        return rejectWithValue(response.data.errMessage || "Đăng ký thất bại");
-      }
-    } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.errMessage || "Lỗi không xác định"
-      );
-    }
-  }
-);
-
-// Thunk: Đăng nhập
+// ✅ Login
 export const loginUser = createAsyncThunk(
   "user/loginUser",
   async (
-    data: { email: string; userPassword: string },
+    data: { email: string; userPassword: string; remember: boolean },
     { rejectWithValue }
   ) => {
     try {
@@ -53,6 +30,20 @@ export const loginUser = createAsyncThunk(
 
       if (errMessage === "OK" && resData?.user && resData?.token) {
         document.cookie = `token=${resData.token}; path=/; max-age=86400`;
+
+        if (data.remember) {
+          localStorage.setItem("user", JSON.stringify(resData));
+          localStorage.setItem(
+            "rememberedLogin",
+            JSON.stringify({
+              email: data.email,
+              userPassword: data.userPassword,
+            })
+          );
+        } else {
+          localStorage.removeItem("rememberedLogin");
+        }
+
         return resData.user as User;
       } else {
         return rejectWithValue("Email hoặc mật khẩu không chính xác!");
@@ -65,48 +56,80 @@ export const loginUser = createAsyncThunk(
   }
 );
 
-// ✅ Thunk: Sửa thông tin user
+// ✅ Get all users
+export const fetchUsers = createAsyncThunk(
+  "user/fetchUsers",
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await axiosInstance.get("/api/User");
+      return res.data.data as User[];
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.errMessage || "Lỗi lấy danh sách người dùng"
+      );
+    }
+  }
+);
+
+// ✅ Create user
+// redux/slices/userSlice.ts
+
+export const createUser = createAsyncThunk(
+  "user/createUser",
+  async (newUser: Omit<User, "id">, { rejectWithValue }) => {
+    try {
+      const res = await axiosInstance.post("/api/User", {
+        ...newUser,
+        Role: "user",
+      });
+      const { errCode, errMessage, data } = res.data;
+
+      if (errCode === 0) {
+        return data;
+      } else {
+        return rejectWithValue(errMessage || "Tạo tài khoản thất bại");
+      }
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.errMessage || "Lỗi tạo người dùng"
+      );
+    }
+  }
+);
+
+// ✅ Update user
 export const updateUser = createAsyncThunk(
   "user/updateUser",
-  async (data: Partial<User> & { userId: number }, { rejectWithValue }) => {
+  async (
+    { id, updatedData }: { id: number; updatedData: FormData },
+    { rejectWithValue }
+  ) => {
     try {
-      const response = await axiosInstance.put(
-        `/api/User/${data.userId}`,
-        data
-      );
-      if (response.data.errCode === 0) {
-        return response.data.user as User;
-      } else {
-        return rejectWithValue(response.data.errMessage || "Cập nhật thất bại");
-      }
+      const res = await axiosInstance.put(`/api/User/${id}`, updatedData);
+      return res.data.data as User;
     } catch (error: any) {
       return rejectWithValue(
-        error.response?.data?.errMessage || "Lỗi cập nhật"
+        error.response?.data?.errMessage || "Lỗi cập nhật người dùng"
       );
     }
   }
 );
 
-// ✅ Thunk: Xóa user
+// ✅ Delete user
 export const deleteUser = createAsyncThunk(
   "user/deleteUser",
-  async (userId: number, { rejectWithValue }) => {
+  async (id: number, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.delete(`/api/User/${userId}`);
-      if (response.data.errCode === 0) {
-        return userId;
-      } else {
-        return rejectWithValue(response.data.errMessage || "Xóa thất bại");
-      }
+      await axiosInstance.delete(`/api/User/${id}`);
+      return id;
     } catch (error: any) {
       return rejectWithValue(
-        error.response?.data?.errMessage || "Lỗi xóa user"
+        error.response?.data?.errMessage || "Lỗi xóa người dùng"
       );
     }
   }
 );
 
-// Slice
 const userSlice = createSlice({
   name: "user",
   initialState,
@@ -116,28 +139,14 @@ const userSlice = createSlice({
     },
     clearUser: (state) => {
       state.user = null;
+      document.cookie = "token=; path=/; max-age=0";
       state.loading = false;
       state.error = null;
-      document.cookie = "token=; path=/; max-age=0";
     },
   },
   extraReducers: (builder) => {
+    // Login
     builder
-      // Register
-      .addCase(registerUser.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(registerUser.fulfilled, (state, action) => {
-        state.loading = false;
-        state.user = action.payload;
-      })
-      .addCase(registerUser.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload as string;
-      })
-
-      // Login
       .addCase(loginUser.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -149,40 +158,53 @@ const userSlice = createSlice({
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
-      })
+      });
 
-      // Update
-      .addCase(updateUser.pending, (state) => {
+    // Fetch Users
+    builder
+      .addCase(fetchUsers.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(updateUser.fulfilled, (state, action) => {
+      .addCase(fetchUsers.fulfilled, (state, action) => {
         state.loading = false;
-        state.user = action.payload;
+        state.users = action.payload;
       })
-      .addCase(updateUser.rejected, (state, action) => {
+      .addCase(fetchUsers.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
-      })
+      });
 
-      // Delete
-      .addCase(deleteUser.pending, (state) => {
-        state.loading = true;
-        state.error = null;
+    // Create
+    builder
+      .addCase(createUser.fulfilled, (state, action) => {
+        state.users.push(action.payload);
       })
+      .addCase(createUser.rejected, (state, action) => {
+        state.error = action.payload as string;
+      });
+
+    // Update
+    builder
+      .addCase(updateUser.fulfilled, (state, action) => {
+        state.users = state.users.map((user) =>
+          user.id === action.payload.id ? action.payload : user
+        );
+      })
+      .addCase(updateUser.rejected, (state, action) => {
+        state.error = action.payload as string;
+      });
+
+    // Delete
+    builder
       .addCase(deleteUser.fulfilled, (state, action) => {
-        state.loading = false;
-        if (state.user?.userId === action.payload) {
-          state.user = null; // nếu user hiện tại bị xóa
-        }
+        state.users = state.users.filter((user) => user.id !== action.payload);
       })
       .addCase(deleteUser.rejected, (state, action) => {
-        state.loading = false;
         state.error = action.payload as string;
       });
   },
 });
 
-// Exports
 export const { setUser, clearUser } = userSlice.actions;
 export default userSlice.reducer;

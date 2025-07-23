@@ -9,16 +9,15 @@ import {
   CircularProgress,
   Link as MuiLink,
 } from "@mui/material";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import axiosInstance from "@/lib/axios/axiosInstance";
-import axios from "axios";
+import { useAppDispatch, useAppSelector } from "@/redux/hook";
+import { createUser } from "@/redux/slices/userSlice";
 import styles from "./styles.module.scss";
 import { toast } from "react-toastify";
 import Link from "next/link";
 
 const Register = () => {
-  const [loading, setLoading] = useState(false);
   const [formValues, setFormValues] = useState({
     userName: "",
     userPassword: "",
@@ -29,6 +28,9 @@ const Register = () => {
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const router = useRouter();
+
+  const dispatch = useAppDispatch();
+  const { loading, error } = useAppSelector((state) => state.user);
 
   const validate = () => {
     const newErrors: { [key: string]: string } = {};
@@ -56,7 +58,7 @@ const Register = () => {
       newErrors.phone = "Vui lòng nhập số điện thoại!";
     } else if (!/^(03|05|07|08|09)\d{8}$/.test(formValues.phone)) {
       newErrors.phone =
-        "Số điện thoại không hợp lệ (phải là số Việt Nam bắt đầu bằng 03, 05, 07, 08, 09 và có 10 chữ số).";
+        "Số điện thoại không hợp lệ (phải bắt đầu bằng 03, 05, 07, 08, 09 và có 10 chữ số).";
     }
 
     if (!formValues.address) newErrors.address = "Vui lòng nhập địa chỉ!";
@@ -77,29 +79,12 @@ const Register = () => {
     e.preventDefault();
     if (!validate()) return;
 
-    setLoading(true);
-    try {
-      const response = await axiosInstance.post("/api/User", {
-        ...formValues,
-        Role: "user",
-      });
-
-      const { errCode, errMessage } = response.data;
-
-      if (errCode === 0) {
-        toast.success(errMessage || "Đăng ký thành công!");
-        router.push("/");
-      } else {
-        toast.error(errMessage || "Đăng ký thất bại!");
-      }
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error) && error.response?.data?.errMessage) {
-        toast.error(error.response.data.errMessage);
-      } else {
-        toast.error("Có lỗi xảy ra, vui lòng thử lại!");
-      }
-    } finally {
-      setLoading(false);
+    const action = await dispatch(createUser(formValues));
+    if (createUser.fulfilled.match(action)) {
+      toast.success("Đăng ký thành công!");
+      router.push("/");
+    } else {
+      toast.error(action.payload as string);
     }
   };
 

@@ -8,7 +8,6 @@ import {
   Typography,
   TimePicker,
   Select,
-  Upload,
 } from "antd";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -16,8 +15,6 @@ import axiosInstance from "@/lib/axios/axiosInstance";
 import styles from "./styles.module.scss";
 import { toast } from "react-toastify";
 import dynamic from "next/dynamic";
-import { UploadOutlined } from "@ant-design/icons";
-import type { UploadFile } from "antd/es/upload/interface";
 
 const MapView = dynamic(() => import("@/components/layouts/MapView"), {
   ssr: false,
@@ -30,39 +27,32 @@ const RestaurantCreatePage = () => {
   const [latitude, setLatitude] = useState<number>(10.762622);
   const [longitude, setLongitude] = useState<number>(106.660172);
   const [form] = Form.useForm();
-  const [fileList, setFileList] = useState<UploadFile[]>([]);
   const router = useRouter();
 
   const handleCreate = async (values: any) => {
     setLoading(true);
     try {
-      const token = JSON.parse(localStorage.getItem("user") || "{}")?.token;
-      if (!token) {
-        toast.error("Không tìm thấy token đăng nhập.");
-        return;
-      }
+      const tokenData = JSON.parse(localStorage.getItem("user") || "{}");
+      const payload = {
+        ownerId: tokenData.user.userId,
+        ownerEmail: tokenData.user.email,
+        ownerName: tokenData.user.userName,
+        ownerPhone: tokenData.user.phone,
+        name: values.name,
+        category: values.category,
+        address: values.address,
+        latitude,
+        longitude,
+        description: values.description,
+        openTime: values.openTime.format("HH:mm"),
+        closeTime: values.closeTime.format("HH:mm"),
+        status: "pending",
+        isHidden: false,
+        // Nếu sau này backend xử lý ảnh riêng, có thể bỏ thêm:
+        // imagePublicId: "…", imageUrl: "…"
+      };
 
-      const formData = new FormData();
-      formData.append("name", values.name);
-      formData.append("category", values.category);
-      formData.append("address", values.address);
-      formData.append("latitude", latitude.toString());
-      formData.append("longitude", longitude.toString());
-      formData.append("description", values.description);
-      formData.append("openTime", values.openTime.format("HH:mm"));
-      formData.append("closeTime", values.closeTime.format("HH:mm"));
-      formData.append("status", "APPROVED");
-
-      if (fileList.length > 0 && fileList[0].originFileObj) {
-        formData.append("image", fileList[0].originFileObj); // key BE yêu cầu
-      }
-
-      const response = await axiosInstance.post("/api/Restaurant", formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      const response = await axiosInstance.post("/api/Restaurant", payload);
 
       const { errMessage } = response.data;
       if (errMessage === "Created") {
@@ -71,8 +61,9 @@ const RestaurantCreatePage = () => {
       } else {
         toast.error("Tạo thất bại, vui lòng kiểm tra lại!");
       }
-    } catch (error) {
+    } catch (error: any) {
       toast.error("Có lỗi xảy ra khi tạo nhà hàng.");
+      console.error(error);
     } finally {
       setLoading(false);
     }
@@ -83,7 +74,6 @@ const RestaurantCreatePage = () => {
   ) => {
     const address = e.target.value;
     form.setFieldsValue({ address });
-
     if (!address.trim()) return;
 
     try {
@@ -102,7 +92,7 @@ const RestaurantCreatePage = () => {
       } else {
         toast.error("Không tìm thấy tọa độ từ địa chỉ.");
       }
-    } catch (err) {
+    } catch {
       toast.error("Lỗi khi lấy tọa độ từ địa chỉ.");
     }
   };
@@ -114,22 +104,18 @@ const RestaurantCreatePage = () => {
           Tạo nhà hàng mới
         </Title>
         <Form layout="vertical" onFinish={handleCreate} form={form}>
-          <Form.Item
-            label="Tên nhà hàng"
-            name="name"
-            rules={[{ required: true }]}
-          >
+          {/* Các trường Input giống như trước */}
+          <Form.Item label="Tên" name="name" rules={[{ required: true }]}>
             <Input />
           </Form.Item>
-
           <Form.Item
             label="Danh mục"
             name="category"
             rules={[{ required: true }]}
           >
             <Select placeholder="Chọn loại hình nhà hàng">
+              <Select.Option value="nhaHang">Nhà hàng</Select.Option>
               <Select.Option value="Buffet">Buffet</Select.Option>
-              <Select.Option value="NhaHang">Nhà hàng</Select.Option>
               <Select.Option value="AnVatViaHe">Ăn vặt/vỉa hè</Select.Option>
               <Select.Option value="AnChay">Ăn chay</Select.Option>
               <Select.Option value="CafeNuocuong">Cafe/Nuocuong</Select.Option>
@@ -138,7 +124,6 @@ const RestaurantCreatePage = () => {
               <Select.Option value="QuanNhau">Quán nhậu</Select.Option>
             </Select>
           </Form.Item>
-
           <Form.Item
             label="Địa chỉ"
             name="address"
@@ -146,27 +131,6 @@ const RestaurantCreatePage = () => {
           >
             <Input onChange={handleAddressChange} />
           </Form.Item>
-
-          <Form.Item label="Vị trí hiển thị trên bản đồ">
-            <MapView
-              initialLat={latitude}
-              initialLng={longitude}
-              isMarkerFixed={true}
-              lat={latitude}
-              lng={longitude}
-            />
-            <p>
-              Vĩ độ: {latitude.toFixed(6)} | Kinh độ: {longitude.toFixed(6)}
-            </p>
-          </Form.Item>
-
-          <Form.Item name="latitude" hidden>
-            <Input />
-          </Form.Item>
-          <Form.Item name="longitude" hidden>
-            <Input />
-          </Form.Item>
-
           <Form.Item
             label="Mô tả"
             name="description"
@@ -174,36 +138,20 @@ const RestaurantCreatePage = () => {
           >
             <Input.TextArea rows={3} />
           </Form.Item>
-
           <Form.Item
-            label="Giờ mở cửa"
+            label="Mở cửa"
             name="openTime"
             rules={[{ required: true }]}
           >
             <TimePicker format="HH:mm" />
           </Form.Item>
-
           <Form.Item
-            label="Giờ đóng cửa"
+            label="Đóng cửa"
             name="closeTime"
             rules={[{ required: true }]}
           >
             <TimePicker format="HH:mm" />
           </Form.Item>
-
-          <Form.Item label="Ảnh đại diện" required>
-            <Upload
-              beforeUpload={() => false}
-              fileList={fileList}
-              onChange={({ fileList }) => setFileList(fileList)}
-              accept="image/*"
-              maxCount={1}
-              listType="picture"
-            >
-              <Button icon={<UploadOutlined />}>Chọn ảnh</Button>
-            </Upload>
-          </Form.Item>
-
           <Form.Item>
             <Button type="primary" htmlType="submit" loading={loading} block>
               Tạo nhà hàng

@@ -11,22 +11,25 @@ import {
   FormControlLabel,
   Link,
 } from "@mui/material";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import axiosInstance from "@/lib/axios/axiosInstance";
 import styles from "./styles.module.scss";
 import { toast } from "react-toastify";
-import { useDispatch } from "react-redux";
-import { setUser } from "@/redux/slices/userSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/redux/store";
+import { loginUser } from "@/redux/slices/userSlice";
 
 const LoginPage = () => {
-  const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [userPassword, setUserPassword] = useState("");
   const [remember, setRemember] = useState(false);
 
   const router = useRouter();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
+
+  const { loading, error, user } = useSelector(
+    (state: RootState) => state.user
+  );
 
   useEffect(() => {
     const savedLogin = localStorage.getItem("rememberedLogin");
@@ -38,50 +41,31 @@ const LoginPage = () => {
     }
   }, []);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      const values = { email, userPassword, remember };
-      const response = await axiosInstance.post("/api/User/login", values);
-      const { errMessage, data } = response.data;
-
-      if (errMessage === "OK" && data?.token && data?.user) {
-        dispatch(setUser(data.user));
-        document.cookie = `token=${data.token}; path=/; max-age=86400`;
-
-        if (remember) {
-          localStorage.setItem("user", JSON.stringify(data));
-          localStorage.setItem(
-            "rememberedLogin",
-            JSON.stringify({ email, userPassword })
-          );
-        } else {
-          localStorage.removeItem("rememberedLogin");
-        }
-
-        toast.success("Đăng nhập thành công!");
-
-        switch (data.user.role) {
-          case "admin":
-            router.push("/admin");
-            break;
-          case "business":
-            router.push("/restaurant");
-            break;
-          default:
-            router.push("/");
-        }
-      } else {
-        toast.error("Email hoặc mật khẩu không chính xác!");
+  useEffect(() => {
+    if (user) {
+      toast.success("Đăng nhập thành công!");
+      switch (user.role) {
+        case "admin":
+          router.push("/admin");
+          break;
+        case "business":
+          router.push("/restaurant");
+          break;
+        default:
+          router.push("/");
       }
-    } catch (error) {
-      console.error("Lỗi đăng nhập:", error);
-      toast.error("Đăng nhập thất bại! Vui lòng thử lại.");
-    } finally {
-      setLoading(false);
     }
+  }, [user]);
+
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+    }
+  }, [error]);
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    dispatch(loginUser({ email, userPassword, remember }));
   };
 
   return (
