@@ -1,9 +1,11 @@
 import { configureStore } from "@reduxjs/toolkit";
-import userReducer from "./slices/userSide";
-import dishReducer from "./slices/dishSide";
+import themeReducer from "./slices/useThemeSlice";
+import userReducer from "./slices/userSlide";
+import dishReducer from "./slices/dishSlide";
 
 export const store = configureStore({
   reducer: {
+    theme: themeReducer,
     user: userReducer,
     dish: dishReducer,
   },

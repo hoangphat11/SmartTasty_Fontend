@@ -1,5 +1,6 @@
-
 {
-  "homepage_btn_title": "Trang Chủ",
-  "logout_btn_title": "Đăng Xuất"
+  "home": {
+    "homepage_btn_title": "Trang Chủ",
+    "logout_btn_title": "Thoát"
+  }
 }

@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "raw.githubusercontent.com",
-        pathname: "/**", // Cho phép toàn bộ ảnh từ domain này
+        pathname: "/**",
       },
     ],
   },

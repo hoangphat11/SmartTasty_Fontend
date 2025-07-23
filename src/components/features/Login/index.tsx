@@ -9,7 +9,7 @@ import axiosInstance from "@/lib/axios/axiosInstance";
 import styles from "./styles.module.scss";
 import { toast } from "react-toastify";
 import { useDispatch } from "react-redux";
-import { setUser } from "@/redux/slices/userSide";
+import { setUser } from "@/redux/slices/userSlide";
 //import { headers } from "next/headers";
 
 const { Title } = Typography;

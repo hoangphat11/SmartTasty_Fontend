@@ -8,6 +8,8 @@ import { BellOutlined, SearchOutlined } from "@ant-design/icons";
 import Image from "next/image";
 import styles from "./styles.module.scss";
 import { getImageUrl } from "@/constants/config/imageBaseUrl";
+import LanguageSelector from "@/components/layouts/LanguageSelector";
+import ThemeToggleButton from "@/components/layouts/ThemeToggleButton";
 
 const { Option } = Select;
 
@@ -20,8 +22,6 @@ const getCookie = (name: string): string | null => {
 const Header = () => {
   const [localUserName, setLocalUserName] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [language, setLanguage] = useState<"vi" | "en">("vi");
-  const [showLanguagePopover, setShowLanguagePopover] = useState(false);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
@@ -51,32 +51,6 @@ const Header = () => {
     setLocalUserName(null);
     window.location.href = "/login";
   };
-
-  const flagSrc =
-    language === "vi"
-      ? "https://upload.wikimedia.org/wikipedia/commons/2/21/Flag_of_Vietnam.svg"
-      : "https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg";
-
-  const languageSelectContent = (
-    <div
-      onClick={() => {
-        setLanguage(language === "vi" ? "en" : "vi");
-        setShowLanguagePopover(false);
-      }}
-      style={{ cursor: "pointer", padding: 8 }}
-    >
-      <Image
-        src={
-          language === "vi"
-            ? "https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg"
-            : "https://upload.wikimedia.org/wikipedia/commons/2/21/Flag_of_Vietnam.svg"
-        }
-        alt={language === "vi" ? "EN" : "VI"}
-        width={24}
-        height={16}
-      />
-    </div>
-  );
 
   const userMenu = (
     <div className={styles.popoverMenu}>
@@ -172,23 +146,8 @@ const Header = () => {
         {/* Thông báo */}
         <BellOutlined style={{ fontSize: 18, margin: "0 12px" }} />
 
-        {/* Chọn ngôn ngữ */}
-        <Popover
-          content={languageSelectContent}
-          open={showLanguagePopover}
-          placement="bottomRight"
-          trigger="click"
-          onOpenChange={(open: any) => setShowLanguagePopover(open)}
-        >
-          <div style={{ cursor: "pointer", marginLeft: 8 }}>
-            <Image
-              src={flagSrc}
-              alt={language.toUpperCase()}
-              width={24}
-              height={16}
-            />
-          </div>
-        </Popover>
+        <LanguageSelector />
+        <ThemeToggleButton />
       </div>
     </div>
   );

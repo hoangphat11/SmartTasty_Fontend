@@ -4,10 +4,9 @@
     "logout_btn_title": "Logout"
   },
   "header": {
-    "danhmuc_btn_title": "category",
-    "xinchao_btn_title": "Hello",
-    "taikhoang_btn_tile": "Account",
-    "dangxuat_btn_title": "Logout"
+    "category_btn_title": "category",
+    "account_btn_tile": "Account",
+    "logout_btn_title": "Logout"
   },
   "footer": {
     "lienhevoichungtoi_btn_title": "Contact us",
@@ -17,13 +16,12 @@
     "hangngay_btn_title": ""
   },
 
-  "account":{
+  "account": {
     "thongtintaikhoang_btn_title": "",
     "doimatkhau_btn_title": "",
-    "tennguoidung_btn_title":"",
+    "tennguoidung_btn_title": "",
     "sodienthoai_btn_title": "",
     "diachi_btn_title": "Address",
-    "dangxuat_btn_title": "Logout" 
-  
+    "dangxuat_btn_title": "Logout"
   }
 }

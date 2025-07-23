@@ -1,13 +1,4 @@
-
-import SlideHeader from "@/components/layouts/SlideHeader"
-
 const index = () => {
-
-  return (
-    <>
-    <SlideHeader/>
-    <a href=""> helooo bodyyyyyyyyyyy</a>
-      </>
-  );
+  return <></>;
 };
 export default index;
