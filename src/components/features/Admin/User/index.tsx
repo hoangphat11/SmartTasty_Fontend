@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  PlusOutlined,
-  SearchOutlined,
-  DeleteOutlined,
-} from "@ant-design/icons";
+import { SearchOutlined, DeleteOutlined } from "@ant-design/icons";
 import { Avatar, Button, Input, Popconfirm, Table } from "antd";
 import { useEffect, useState } from "react";
 import styles from "./styles.module.scss";
@@ -13,20 +9,17 @@ import { ColumnsType } from "antd/es/table";
 import { toast } from "react-toastify";
 import axiosInstance from "@/lib/axios/axiosInstance";
 import { User } from "@/types/user";
-import UserModal from "@/Model/UserModel";
 
 const UserPage = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [search, setSearch] = useState("");
-  const [openModal, setOpenModal] = useState(false);
 
   const fetchUsers = async () => {
     try {
-      const res = await axiosInstance.get("/api/User"); // đổi endpoint nếu backend khác
+      const res = await axiosInstance.get("/api/User");
       const allUsers: User[] = res.data.data || [];
       const filteredUsers = allUsers.filter((user) => user.role === "user");
       setUsers(filteredUsers);
-      console.log("abc", filteredUsers);
     } catch (error) {
       console.log("loi", error);
       toast.error("Không thể lấy danh sách người dùng!");
@@ -99,16 +92,11 @@ const UserPage = () => {
 
   return (
     <div className={styles.container}>
-      <UserModal
-        open={openModal}
-        onClose={() => setOpenModal(false)}
-        onSuccess={fetchUsers}
-      />
       <span>Thông Tin User</span>
       <div
         style={{
           display: "flex",
-          justifyContent: "space-between",
+          justifyContent: "flex-start",
           marginBottom: 16,
         }}
       >
@@ -119,13 +107,6 @@ const UserPage = () => {
           onChange={(e) => setSearch(e.target.value)}
           style={{ width: 250 }}
         />
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={() => setOpenModal(true)}
-        >
-          Thêm
-        </Button>
       </div>
       <Table
         bordered

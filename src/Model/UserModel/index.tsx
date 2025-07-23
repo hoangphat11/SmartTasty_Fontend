@@ -1,133 +1,120 @@
-"use client";
+// "use client";
 
-import axiosInstance from "@/lib/axios/axiosInstance";
-import { Button, Form, Input, Modal, Select } from "antd";
-import { isEqual } from "lodash";
-import React, { useState } from "react";
-import { toast } from "react-toastify";
+// import axiosInstance from "@/lib/axios/axiosInstance";
+// import { Button, Form, Input, Modal } from "antd";
+// import React, { useEffect, useState } from "react";
+// import { toast } from "react-toastify";
 
-const { Option } = Select;
+// interface UserUpdateModalProps {
+//   open: boolean;
+//   onClose: () => void;
+//   onSuccess: () => void;
+//   currentUser: {
+//     userId: number;
+//     userName: string;
+//     email: string;
+//     phone: string;
+//   };
+// }
 
-interface UserModalProps {
-  open: boolean;
-  onClose: () => void;
-  onSuccess: () => void;
-}
+// interface UserFormValues {
+//   userName: string;
+//   email: string;
+//   phone: string;
+// }
 
-interface UserFormValues {
-  UserName: string;
-  UserPassword: string;
-  Email: string;
-  Phone: string;
-  Role: "admin" | "user";
-}
+// const UserUpdateModal: React.FC<UserUpdateModalProps> = ({
+//   open,
+//   onClose,
+//   onSuccess,
+//   currentUser,
+// }) => {
+//   const [loading, setLoading] = useState(false);
+//   const [form] = Form.useForm<UserFormValues>();
 
-const UserModal: React.FC<UserModalProps> = ({ open, onClose, onSuccess }) => {
-  const [loading, setLoading] = useState(false);
-  const [form] = Form.useForm<UserFormValues>();
+//   useEffect(() => {
+//     if (open && currentUser) {
+//       form.setFieldsValue({
+//         userName: currentUser.userName,
+//         email: currentUser.email,
+//         phone: currentUser.phone,
+//       });
+//     }
+//   }, [open, currentUser, form]);
 
-  const handleSubmit = () => {
-    form.submit();
-  };
+//   const handleSubmit = () => {
+//     form.submit();
+//   };
 
-  const onFinish = async (values: UserFormValues) => {
-    setLoading(true);
-    try {
-      const response = await axiosInstance.post("CreateNewUser", values);
+//   const onFinish = async (values: UserFormValues) => {
+//     setLoading(true);
+//     try {
+//       const response = await axiosInstance.put(
+//         `/api/User/${currentUser.userId}`,
+//         values
+//       );
 
-      if (isEqual(response.data.errCode, 0)) {
-        form.resetFields();
-        onClose();
-        toast.success("Thêm mới thành công!");
-        onSuccess();
-      } else {
-        toast.error("Thêm mới thất bại!");
-      }
-    } catch (error) {
-      console.error("Lỗi API:", error);
-      toast.error("Thêm mới thất bại!");
-    } finally {
-      setLoading(false);
-    }
-  };
+//       if (response.data?.errCode === 0 || response.status === 200) {
+//         toast.success("Cập nhật thông tin thành công!");
+//         onClose();
+//         onSuccess();
+//       } else {
+//         toast.error("Cập nhật thất bại!");
+//       }
+//     } catch (error) {
+//       console.error("Lỗi API:", error);
+//       toast.error("Cập nhật thất bại!");
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
 
-  return (
-    <>
-      <Modal
-        open={open}
-        title="Thêm user"
-        onOk={handleSubmit}
-        onCancel={onClose}
-        footer={[
-          <Button key="back" onClick={onClose}>
-            Hủy
-          </Button>,
-          <Button
-            key="submit"
-            type="primary"
-            loading={loading}
-            onClick={handleSubmit}
-          >
-            Thêm
-          </Button>,
-        ]}
-      >
-        <Form form={form} layout="vertical" name="add_user" onFinish={onFinish}>
-          <Form.Item
-            label="UserName"
-            name="UserName"
-            rules={[{ required: true, message: "Vui lòng nhập UserName!" }]}
-          >
-            <Input placeholder="Nhập tên người dùng" />
-          </Form.Item>
+//   return (
+//     <Modal
+//       open={open}
+//       title="Chỉnh sửa thông tin cá nhân"
+//       onOk={handleSubmit}
+//       onCancel={onClose}
+//       confirmLoading={loading}
+//       okText="Lưu"
+//       cancelText="Hủy"
+//     >
+//       <Form form={form} layout="vertical" onFinish={onFinish}>
+//         <Form.Item
+//           label="Tên người dùng"
+//           name="userName"
+//           rules={[{ required: true, message: "Vui lòng nhập tên!" }]}
+//         >
+//           <Input placeholder="Nhập tên người dùng" />
+//         </Form.Item>
 
-          <Form.Item
-            label="UserPassword"
-            name="UserPassword"
-            rules={[{ required: true, message: "Vui lòng nhập UserPassWord!" }]}
-          >
-            <Input placeholder="Nhập mật khẩu" />
-          </Form.Item>
+//         <Form.Item
+//           label="Email"
+//           name="email"
+//           rules={[
+//             { required: true, message: "Vui lòng nhập email!" },
+//             { type: "email", message: "Email không hợp lệ!" },
+//           ]}
+//         >
+//           <Input placeholder="Nhập email" />
+//         </Form.Item>
 
-          <Form.Item
-            label="Email"
-            name="Email"
-            rules={[
-              { required: true, message: "Vui lòng nhập Email!" },
-              { type: "email", message: "Email không hợp lệ!" },
-            ]}
-          >
-            <Input placeholder="Nhập email" />
-          </Form.Item>
+//         <Form.Item
+//           label="Số điện thoại"
+//           name="phone"
+//           rules={[
+//             { required: true, message: "Vui lòng nhập số điện thoại!" },
+//             {
+//               pattern: /^[0-9]{10,11}$/,
+//               message: "Số điện thoại không hợp lệ!",
+//             },
+//           ]}
+//         >
+//           <Input placeholder="Nhập số điện thoại" />
+//         </Form.Item>
+//       </Form>
+//     </Modal>
+//   );
+// };
 
-          <Form.Item
-            label="Phone"
-            name="Phone"
-            rules={[
-              { required: true, message: "Vui lòng nhập số điện thoại!" },
-              {
-                pattern: /^[0-9]{10,11}$/,
-                message: "Số điện thoại không hợp lệ!",
-              },
-            ]}
-          >
-            <Input placeholder="Nhập số điện thoại" />
-          </Form.Item>
-
-          <Form.Item
-            label="Role"
-            name="Role"
-            rules={[{ required: true, message: "Vui lòng chọn vai trò!" }]}
-          >
-            <Select placeholder="Chọn vai trò">
-              <Option value="admin">Admin</Option>
-              <Option value="user">User</Option>
-            </Select>
-          </Form.Item>
-        </Form>
-      </Modal>
-    </>
-  );
-};
-
-export default UserModal;
+// export default UserUpdateModal;

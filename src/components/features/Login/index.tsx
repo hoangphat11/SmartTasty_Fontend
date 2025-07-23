@@ -1,64 +1,61 @@
 "use client";
 
-import { Form, Input, Button, Card, Typography, Checkbox } from "antd";
-import { UserOutlined, LockOutlined } from "@ant-design/icons";
-
+import {
+  Box,
+  Button,
+  Card,
+  Checkbox,
+  CircularProgress,
+  TextField,
+  Typography,
+  FormControlLabel,
+  Link,
+} from "@mui/material";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import axiosInstance from "@/lib/axios/axiosInstance";
 import styles from "./styles.module.scss";
 import { toast } from "react-toastify";
 import { useDispatch } from "react-redux";
-import { setUser } from "@/redux/slices/userSlide";
-//import { headers } from "next/headers";
-
-const { Title } = Typography;
+import { setUser } from "@/redux/slices/userSlice";
 
 const LoginPage = () => {
   const [loading, setLoading] = useState(false);
-  const [form] = Form.useForm();
+  const [email, setEmail] = useState("");
+  const [userPassword, setUserPassword] = useState("");
+  const [remember, setRemember] = useState(false);
+
   const router = useRouter();
   const dispatch = useDispatch();
 
-  // Load email + password nếu có lưu
   useEffect(() => {
     const savedLogin = localStorage.getItem("rememberedLogin");
     if (savedLogin) {
       const { email, userPassword } = JSON.parse(savedLogin);
-      form.setFieldsValue({
-        email,
-        userPassword,
-        remember: true,
-      });
+      setEmail(email);
+      setUserPassword(userPassword);
+      setRemember(true);
     }
   }, []);
 
-  const handleLogin = async (values: {
-    email: string;
-    userPassword: string;
-    remember?: boolean;
-  }) => {
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
     setLoading(true);
 
     try {
+      const values = { email, userPassword, remember };
       const response = await axiosInstance.post("/api/User/login", values);
       const { errMessage, data } = response.data;
 
       if (errMessage === "OK" && data?.token && data?.user) {
         dispatch(setUser(data.user));
-
-        // Lưu user cho middleware
         document.cookie = `token=${data.token}; path=/; max-age=86400`;
 
-        // Nếu remember thì lưu login vào localStorage
-        if (values.remember) {
+        if (remember) {
           localStorage.setItem("user", JSON.stringify(data));
           localStorage.setItem(
             "rememberedLogin",
-            JSON.stringify({
-              email: values.email,
-              userPassword: values.userPassword,
-            })
+            JSON.stringify({ email, userPassword })
           );
         } else {
           localStorage.removeItem("rememberedLogin");
@@ -66,7 +63,6 @@ const LoginPage = () => {
 
         toast.success("Đăng nhập thành công!");
 
-        // Điều hướng theo role
         switch (data.user.role) {
           case "admin":
             router.push("/admin");
@@ -90,69 +86,87 @@ const LoginPage = () => {
 
   return (
     <div className={styles.loginContainer}>
-      <Card className={styles.loginCard}>
-        <Title level={2} style={{ textAlign: "center" }}>
+      <Card className={styles.loginCard} sx={{ padding: 4 }}>
+        <Typography variant="h4" align="center" gutterBottom>
           Đăng nhập
-        </Title>
-        <Form layout="vertical" onFinish={handleLogin} form={form}>
-          <Form.Item
+        </Typography>
+
+        <Box
+          component="form"
+          onSubmit={handleLogin}
+          display="flex"
+          flexDirection="column"
+          gap={2}
+        >
+          <TextField
             label="Email"
-            name="email"
-            rules={[
-              { required: true, message: "Vui lòng nhập email!" },
-              { type: "email", message: "Email không hợp lệ!" },
-            ]}
-          >
-            <Input placeholder="Nhập email" prefix={<UserOutlined />} />
-          </Form.Item>
+            variant="outlined"
+            fullWidth
+            required
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
 
-          <Form.Item
+          <TextField
             label="Mật khẩu"
-            name="userPassword"
-            rules={[{ required: true, message: "Vui lòng nhập mật khẩu!" }]}
-          >
-            <Input.Password
-              placeholder="Nhập mật khẩu"
-              prefix={<LockOutlined />}
-            />
-          </Form.Item>
+            variant="outlined"
+            fullWidth
+            required
+            type="password"
+            value={userPassword}
+            onChange={(e) => setUserPassword(e.target.value)}
+          />
 
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: 12,
-            }}
+          <Box
+            display="flex"
+            justifyContent="space-between"
+            alignItems="center"
           >
-            <Form.Item name="remember" valuePropName="checked" noStyle>
-              <Checkbox>Lưu đăng nhập</Checkbox>
-            </Form.Item>
-            <a
-              style={{ color: "#1890ff", cursor: "pointer" }}
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={remember}
+                  onChange={(e) => setRemember(e.target.checked)}
+                  color="primary"
+                />
+              }
+              label="Lưu đăng nhập"
+            />
+            <Link
+              underline="hover"
+              sx={{ cursor: "pointer" }}
               onClick={() => router.push("/forgotPassword")}
             >
               Quên mật khẩu?
-            </a>
-          </div>
+            </Link>
+          </Box>
 
-          <Form.Item>
-            <Button
-              //className={styles.Button}
-              type="primary"
-              htmlType="submit"
-              loading={loading}
-              block
-            >
-              Đăng nhập
-            </Button>
-          </Form.Item>
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            fullWidth
+            disabled={loading}
+          >
+            {loading ? (
+              <CircularProgress size={24} color="inherit" />
+            ) : (
+              "Đăng nhập"
+            )}
+          </Button>
+        </Box>
 
-          <div className={styles.loginBottom}>
-            Bạn mới biết đến Smarttasty?{" "}
-            <a onClick={() => router.push("/register")}>Đăng ký</a>
-          </div>
-        </Form>
+        <Box className={styles.loginBottom} mt={2} textAlign="center">
+          Bạn mới biết đến Smarttasty?{" "}
+          <Link
+            underline="hover"
+            onClick={() => router.push("/register")}
+            sx={{ cursor: "pointer" }}
+          >
+            Đăng ký
+          </Link>
+        </Box>
       </Card>
     </div>
   );

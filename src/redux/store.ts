@@ -1,13 +1,15 @@
 import { configureStore } from "@reduxjs/toolkit";
 import themeReducer from "./slices/useThemeSlice";
-import userReducer from "./slices/userSlide";
-import dishReducer from "./slices/dishSlide";
+import userReducer from "./slices/userSlice";
+import dishReducer from "./slices/dishSlice";
+import restaurantReducer from "./slices/restaurantSlice";
 
 export const store = configureStore({
   reducer: {
     theme: themeReducer,
     user: userReducer,
     dish: dishReducer,
+    restaurant: restaurantReducer,
   },
 });
 

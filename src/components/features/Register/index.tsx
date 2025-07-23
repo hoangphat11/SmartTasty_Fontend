@@ -1,6 +1,14 @@
 "use client";
 
-import { Form, Input, Button, Card, Typography } from "antd";
+import {
+  Box,
+  Button,
+  Card,
+  TextField,
+  Typography,
+  CircularProgress,
+  Link as MuiLink,
+} from "@mui/material";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import axiosInstance from "@/lib/axios/axiosInstance";
@@ -9,23 +17,70 @@ import styles from "./styles.module.scss";
 import { toast } from "react-toastify";
 import Link from "next/link";
 
-const { Title } = Typography;
-
-const Index = () => {
+const Register = () => {
   const [loading, setLoading] = useState(false);
+  const [formValues, setFormValues] = useState({
+    userName: "",
+    userPassword: "",
+    email: "",
+    phone: "",
+    address: "",
+  });
+
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const router = useRouter();
 
-  const handleRegister = async (values: {
-    userName: string;
-    userPassword: string;
-    email: string;
-    phone: string;
-    address: string;
-  }) => {
+  const validate = () => {
+    const newErrors: { [key: string]: string } = {};
+
+    if (!formValues.userName)
+      newErrors.userName = "Vui lòng nhập tên người dùng!";
+    if (!formValues.userPassword) {
+      newErrors.userPassword = "Vui lòng nhập mật khẩu!";
+    } else if (
+      !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{6,}$/.test(
+        formValues.userPassword
+      )
+    ) {
+      newErrors.userPassword =
+        "Mật khẩu phải chứa chữ hoa, chữ thường, số, ký tự đặc biệt và dài hơn 5 ký tự.";
+    }
+
+    if (!formValues.email) {
+      newErrors.email = "Vui lòng nhập Email!";
+    } else if (!/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(formValues.email)) {
+      newErrors.email = "Email không hợp lệ.";
+    }
+
+    if (!formValues.phone) {
+      newErrors.phone = "Vui lòng nhập số điện thoại!";
+    } else if (!/^(03|05|07|08|09)\d{8}$/.test(formValues.phone)) {
+      newErrors.phone =
+        "Số điện thoại không hợp lệ (phải là số Việt Nam bắt đầu bằng 03, 05, 07, 08, 09 và có 10 chữ số).";
+    }
+
+    if (!formValues.address) newErrors.address = "Vui lòng nhập địa chỉ!";
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormValues((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
+    setErrors((prev) => ({ ...prev, [e.target.name]: "" }));
+  };
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validate()) return;
+
     setLoading(true);
     try {
       const response = await axiosInstance.post("/api/User", {
-        ...values,
+        ...formValues,
         Role: "user",
       });
 
@@ -50,96 +105,106 @@ const Index = () => {
 
   return (
     <div className={styles.registerContainer}>
-      <Card className={styles.registerCard}>
-        <Title level={2} style={{ textAlign: "center" }}>
+      <Card className={styles.registerCard} sx={{ padding: 4 }}>
+        <Typography variant="h4" textAlign="center" gutterBottom>
           Đăng ký
-        </Title>
-        <Form layout="vertical" onFinish={handleRegister}>
-          <Form.Item
+        </Typography>
+
+        <Box
+          component="form"
+          onSubmit={handleRegister}
+          display="flex"
+          flexDirection="column"
+          gap={2}
+        >
+          <TextField
             label="Tài khoản"
             name="userName"
-            rules={[
-              { required: true, message: "Vui lòng nhập tên người dùng!" },
-            ]}
-          >
-            <Input placeholder="Nhập tên người dùng" />
-          </Form.Item>
+            value={formValues.userName}
+            onChange={handleChange}
+            error={!!errors.userName}
+            helperText={errors.userName}
+            fullWidth
+          />
 
-          <Form.Item
+          <TextField
             label="Mật khẩu"
+            type="password"
             name="userPassword"
-            rules={[
-              { required: true, message: "Vui lòng nhập mật khẩu!" },
-              {
-                pattern:
-                  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{6,}$/,
-                message:
-                  "Mật khẩu phải chứa chữ hoa, chữ thường, số, ký tự đặc biệt và dài hơn 5 ký tự.",
-              },
-            ]}
-          >
-            <Input.Password placeholder="Nhập mật khẩu" />
-          </Form.Item>
+            value={formValues.userPassword}
+            onChange={handleChange}
+            error={!!errors.userPassword}
+            helperText={errors.userPassword}
+            fullWidth
+          />
 
-          <Form.Item
+          <TextField
             label="Email"
             name="email"
-            rules={[
-              { required: true, message: "Vui lòng nhập Email!" },
-              {
-                pattern: /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/,
-                message: "Email không hợp lệ.",
-              },
-            ]}
-          >
-            <Input placeholder="Nhập email" />
-          </Form.Item>
+            value={formValues.email}
+            onChange={handleChange}
+            error={!!errors.email}
+            helperText={errors.email}
+            fullWidth
+          />
 
-          <Form.Item
+          <TextField
             label="Số điện thoại"
             name="phone"
-            rules={[
-              { required: true, message: "Vui lòng nhập số điện thoại!" },
-              {
-                pattern: /^(03|05|07|08|09)\d{8}$/,
-                message:
-                  "Số điện thoại không hợp lệ (phải là số Việt Nam bắt đầu bằng 03, 05, 07, 08, 09 và có 10 chữ số).",
-              },
-            ]}
-          >
-            <Input placeholder="Nhập số điện thoại" />
-          </Form.Item>
+            value={formValues.phone}
+            onChange={handleChange}
+            error={!!errors.phone}
+            helperText={errors.phone}
+            fullWidth
+          />
 
-          <Form.Item
+          <TextField
             label="Địa chỉ"
             name="address"
-            rules={[{ required: true, message: "Vui lòng nhập địa chỉ!" }]}
-          >
-            <Input placeholder="Nhập địa chỉ" />
-          </Form.Item>
+            value={formValues.address}
+            onChange={handleChange}
+            error={!!errors.address}
+            helperText={errors.address}
+            fullWidth
+          />
 
-          <Form.Item>
-            <Button type="primary" htmlType="submit" loading={loading} block>
-              Đăng ký
-            </Button>
-          </Form.Item>
-          <div className={styles.registerBottom}>
-            Bạn đã có tài khoảng?
-            <a onClick={() => router.push("/login")}>Đăng nhập</a>
-          </div>
-        </Form>
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            fullWidth
+            disabled={loading}
+          >
+            {loading ? (
+              <CircularProgress size={24} color="inherit" />
+            ) : (
+              "Đăng ký"
+            )}
+          </Button>
+
+          <Typography textAlign="center" mt={1}>
+            Bạn đã có tài khoản?{" "}
+            <MuiLink
+              component="button"
+              onClick={() => router.push("/login")}
+              underline="hover"
+              color="primary"
+            >
+              Đăng nhập
+            </MuiLink>
+          </Typography>
+        </Box>
       </Card>
 
-      <div className={styles.formbusiness}>
-        <Link
-          href="/register-business"
-          style={{ color: "#1890ff", cursor: "pointer" }}
-        >
-          Đăng ký cho doanh nghiệp
+      <Box className={styles.formbusiness} mt={2} textAlign="center">
+        <Link href="/register-business" passHref>
+          <MuiLink underline="hover" color="primary">
+            Đăng ký cho doanh nghiệp
+          </MuiLink>
         </Link>
-      </div>
+      </Box>
     </div>
   );
 };
 
-export default Index;
+export default Register;

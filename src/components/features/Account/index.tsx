@@ -1,43 +1,48 @@
 "use client";
 
-import { Typography, Button, message, Input, Form, Tooltip } from "antd";
+import {
+  Typography,
+  Button,
+  TextField,
+  Snackbar,
+  Tabs,
+  Tab,
+  Box,
+} from "@mui/material";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import styles from "./styles.module.scss";
+import axios from "axios";
 import ChangePasswordForm from "@/screens/ChangePassword";
-import axiosInstance from "@/lib/axios/axiosInstance";
+import styles from "./styles.module.scss";
 
-const { Title } = Typography;
+interface User {
+  userId: number;
+  userName: string;
+  email: string;
+  phone: string;
+  address?: string;
+  token?: string;
+}
 
 const AccountPage = () => {
-  const [user, setUser] = useState<any>(null);
-  const [formData, setFormData] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [editableUser, setEditableUser] = useState<Partial<User>>({});
   const [isEditing, setIsEditing] = useState(false);
-  const [canEditUser, setCanEditUser] = useState(false);
   const [activeTab, setActiveTab] = useState<"info" | "password">("info");
+  const [message, setMessage] = useState("");
+  const [messageOpen, setMessageOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
-    const storedPermissions = localStorage.getItem("userPermissions");
-
     if (storedUser) {
       try {
         const parsed = JSON.parse(storedUser);
-        const u = parsed.user || parsed;
-        setUser(u);
-        setFormData(u);
+        const currentUser = parsed.user || parsed;
+        setUser(currentUser);
+        setEditableUser(currentUser);
       } catch (error) {
         console.error("Lỗi khi parse user:", error);
-      }
-    }
-
-    if (storedPermissions) {
-      try {
-        const parsed = JSON.parse(storedPermissions);
-        setCanEditUser(parsed.canEditUser || false);
-      } catch (error) {
-        console.error("Lỗi khi parse quyền:", error);
       }
     }
   }, []);
@@ -49,46 +54,52 @@ const AccountPage = () => {
   };
 
   const handleSave = async () => {
+    if (!user) return;
+
     try {
       const token = JSON.parse(localStorage.getItem("user") || "{}")?.token;
 
-      await axiosInstance.put(
-        `/api/User`,
-        {
-          userId: user?.userId,
-          ...formData,
-        },
+      const response = await axios.put(
+        "https://smarttasty-backend.onrender.com/api/User",
+        { userId: user.userId, ...editableUser },
         {
           headers: {
             Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
           },
         }
       );
 
-      const updatedUser = { ...user, ...formData };
+      const updatedUser = { ...user, ...editableUser };
       localStorage.setItem(
         "user",
         JSON.stringify({ user: updatedUser, token })
       );
       setUser(updatedUser);
       setIsEditing(false);
-      message.success("Cập nhật thành công!");
+      setMessage("Cập nhật thành công!");
     } catch (error: any) {
       if (error?.response?.data?.message?.includes("email")) {
-        message.error("Email đã được sử dụng.");
+        setMessage("Email đã được sử dụng.");
       } else {
-        message.error("Cập nhật thất bại.");
+        setMessage("Cập nhật thất bại.");
       }
-      console.error(error);
+    } finally {
+      setMessageOpen(true);
     }
   };
+
+  const handleChange =
+    (field: keyof User) => (e: React.ChangeEvent<HTMLInputElement>) => {
+      setEditableUser({ ...editableUser, [field]: e.target.value });
+    };
 
   if (!user) {
     return (
       <div className={styles.accountContainer}>
         <div className={styles.contentArea}>
-          <Title level={3}>Bạn chưa đăng nhập</Title>
-          <Button type="primary" onClick={() => router.push("/login")}>
+          <Typography variant="h5">Bạn chưa đăng nhập</Typography>
+          <Button variant="contained" onClick={() => router.push("/login")}>
             Đăng nhập
           </Button>
         </div>
@@ -99,74 +110,72 @@ const AccountPage = () => {
   return (
     <div className={styles.accountContainer}>
       <div className={styles.sidebar}>
-        <div
-          className={`${styles.navItem} ${
-            activeTab === "info" ? styles.active : ""
-          }`}
-          onClick={() => setActiveTab("info")}
+        <Tabs
+          orientation="vertical"
+          value={activeTab}
+          onChange={(e, newValue) => setActiveTab(newValue)}
         >
-          Thông tin tài khoản
-        </div>
-        <div
-          className={`${styles.navItem} ${
-            activeTab === "password" ? styles.active : ""
-          }`}
-          onClick={() => setActiveTab("password")}
-        >
-          Đổi mật khẩu
-        </div>
-        <div className={styles.navItem} onClick={handleLogout}>
-          Đăng xuất
-        </div>
+          <Tab label="Thông tin tài khoản" value="info" />
+          <Tab label="Đổi mật khẩu" value="password" />
+          <Tab label="Đăng xuất" onClick={handleLogout} />
+        </Tabs>
       </div>
 
       <div className={styles.contentArea}>
         {activeTab === "info" && (
           <>
-            <div className={styles.sectionTitle}>Thông tin tài khoản</div>
+            <Typography variant="h6" gutterBottom>
+              Thông tin tài khoản
+            </Typography>
 
             {isEditing ? (
-              <Form layout="vertical">
-                <Form.Item label="Tên người dùng">
-                  <Input
-                    value={formData?.userName}
-                    onChange={(e) =>
-                      setFormData({ ...formData, userName: e.target.value })
-                    }
-                  />
-                </Form.Item>
-                <Form.Item label="Email">
-                  <Input
-                    value={formData?.email}
-                    onChange={(e) =>
-                      setFormData({ ...formData, email: e.target.value })
-                    }
-                  />
-                </Form.Item>
-                <Form.Item label="Số điện thoại">
-                  <Input
-                    value={formData?.phone}
-                    onChange={(e) =>
-                      setFormData({ ...formData, phone: e.target.value })
-                    }
-                  />
-                </Form.Item>
-                <Form.Item label="Địa chỉ">
-                  <Input
-                    value={formData?.address}
-                    onChange={(e) =>
-                      setFormData({ ...formData, address: e.target.value })
-                    }
-                  />
-                </Form.Item>
+              <Box
+                component="form"
+                display="flex"
+                flexDirection="column"
+                gap={2}
+              >
+                <TextField
+                  label="Tên người dùng"
+                  value={editableUser.userName || ""}
+                  onChange={handleChange("userName")}
+                  required
+                />
+                <TextField
+                  label="Email"
+                  type="email"
+                  value={editableUser.email || ""}
+                  onChange={handleChange("email")}
+                  required
+                />
+                <TextField
+                  label="Số điện thoại"
+                  value={editableUser.phone || ""}
+                  onChange={handleChange("phone")}
+                  required
+                />
+                <TextField
+                  label="Địa chỉ"
+                  value={editableUser.address || ""}
+                  onChange={handleChange("address")}
+                />
 
-                <div style={{ display: "flex", gap: 10 }}>
-                  <Button type="primary" onClick={handleSave}>
+                <Box display="flex" gap={2}>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={handleSave}
+                  >
                     Lưu
                   </Button>
-                  <Button onClick={() => setIsEditing(false)}>Hủy</Button>
-                </div>
-              </Form>
+                  <Button
+                    variant="outlined"
+                    onClick={() => setIsEditing(false)}
+                  >
+                    Hủy
+                  </Button>
+                </Box>
+              </Box>
             ) : (
               <>
                 <div className={styles.infoRow}>
@@ -186,20 +195,13 @@ const AccountPage = () => {
                   <strong>{user.address || "Chưa cập nhật"}</strong>
                 </div>
 
-                <Tooltip title={!canEditUser ? "Bạn không có quyền sửa" : ""}>
-                  <Button
-                    type="primary"
-                    disabled={!canEditUser}
-                    onClick={() => setIsEditing(true)}
-                    style={{
-                      marginTop: 16,
-                      opacity: canEditUser ? 1 : 0.5,
-                      cursor: canEditUser ? "pointer" : "not-allowed",
-                    }}
-                  >
-                    Sửa thông tin
-                  </Button>
-                </Tooltip>
+                <Button
+                  variant="contained"
+                  onClick={() => setIsEditing(true)}
+                  sx={{ mt: 2 }}
+                >
+                  Sửa thông tin
+                </Button>
               </>
             )}
           </>
@@ -207,16 +209,27 @@ const AccountPage = () => {
 
         {activeTab === "password" && (
           <>
-            <div className={styles.sectionTitle}>Đổi mật khẩu</div>
+            <Typography variant="h6" gutterBottom>
+              Đổi mật khẩu
+            </Typography>
             <ChangePasswordForm
               onSuccess={() => {
-                message.success("Đổi mật khẩu thành công");
+                setMessage("Đổi mật khẩu thành công");
+                setMessageOpen(true);
                 setActiveTab("info");
               }}
             />
           </>
         )}
       </div>
+
+      <Snackbar
+        open={messageOpen}
+        autoHideDuration={4000}
+        onClose={() => setMessageOpen(false)}
+        message={message}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      />
     </div>
   );
 };

@@ -8,6 +8,7 @@ import {
   Typography,
   TimePicker,
   Select,
+  Upload,
 } from "antd";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -15,8 +16,12 @@ import axiosInstance from "@/lib/axios/axiosInstance";
 import styles from "./styles.module.scss";
 import { toast } from "react-toastify";
 import dynamic from "next/dynamic";
+import { UploadOutlined } from "@ant-design/icons";
+import type { UploadFile } from "antd/es/upload/interface";
 
-const MapView = dynamic(() => import("@/components/layouts/MapView"), { ssr: false });
+const MapView = dynamic(() => import("@/components/layouts/MapView"), {
+  ssr: false,
+});
 
 const { Title } = Typography;
 
@@ -25,6 +30,7 @@ const RestaurantCreatePage = () => {
   const [latitude, setLatitude] = useState<number>(10.762622);
   const [longitude, setLongitude] = useState<number>(106.660172);
   const [form] = Form.useForm();
+  const [fileList, setFileList] = useState<UploadFile[]>([]);
   const router = useRouter();
 
   const handleCreate = async (values: any) => {
@@ -36,21 +42,25 @@ const RestaurantCreatePage = () => {
         return;
       }
 
-      const payload = {
-        name: values.name,
-        category: values.category,
-        address: values.address,
-        latitude,
-        longitude,
-        description: values.description,
-        openTime: values.openTime.format("HH:mm"),
-        closeTime: values.closeTime.format("HH:mm"),
-        status: "APPROVED",
-      };
+      const formData = new FormData();
+      formData.append("name", values.name);
+      formData.append("category", values.category);
+      formData.append("address", values.address);
+      formData.append("latitude", latitude.toString());
+      formData.append("longitude", longitude.toString());
+      formData.append("description", values.description);
+      formData.append("openTime", values.openTime.format("HH:mm"));
+      formData.append("closeTime", values.closeTime.format("HH:mm"));
+      formData.append("status", "APPROVED");
 
-      const response = await axiosInstance.post("/api/Restaurant", payload, {
+      if (fileList.length > 0 && fileList[0].originFileObj) {
+        formData.append("image", fileList[0].originFileObj); // key BE yêu cầu
+      }
+
+      const response = await axiosInstance.post("/api/Restaurant", formData, {
         headers: {
           Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
         },
       });
 
@@ -179,6 +189,19 @@ const RestaurantCreatePage = () => {
             rules={[{ required: true }]}
           >
             <TimePicker format="HH:mm" />
+          </Form.Item>
+
+          <Form.Item label="Ảnh đại diện" required>
+            <Upload
+              beforeUpload={() => false}
+              fileList={fileList}
+              onChange={({ fileList }) => setFileList(fileList)}
+              accept="image/*"
+              maxCount={1}
+              listType="picture"
+            >
+              <Button icon={<UploadOutlined />}>Chọn ảnh</Button>
+            </Upload>
           </Form.Item>
 
           <Form.Item>
