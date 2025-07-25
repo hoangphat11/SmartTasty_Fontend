@@ -1,23 +1,53 @@
 .pageContainer {
-  padding: 32px;
+  padding: 24px;
 }
 
 .restaurantCard {
-  margin-bottom: 32px;
+  padding: 24px;
+  margin-bottom: 24px;
+  border-radius: 12px;
+  background-color: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.restaurantContent {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+.restaurantImageWrapper {
+  flex-shrink: 0;
+  width: 320px;
+  height: 220px;
+  overflow: hidden;
+  border-radius: 12px;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    height: auto;
+  }
+}
+
+.restaurantImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+
+  @media (max-width: 768px) {
+    height: auto;
+  }
+}
+
+.restaurantInfo {
+  flex: 1;
 }
 
 .menuContainer {
-  padding-top: 16px;
-}
-
-.loginContainer {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 80vh;
-}
-
-.loginCard {
-  max-width: 500px;
-  width: 100%;
+  margin-top: 32px;
 }

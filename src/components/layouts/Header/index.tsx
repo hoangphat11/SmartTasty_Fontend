@@ -78,76 +78,78 @@ const Header = () => {
   if (!hydrated) return null;
 
   return (
-    <div className={styles.container}>
-      <div className={styles.headerWrapper}>
-        {/* Logo */}
-        <Link href="/">
-          <Image
-            src={getImageUrl("Logo/anhdaidien.png")}
-            alt="Logo"
-            width={64}
-            height={40}
-            priority
+    <div className="p-4 border-4 border-red-500 bg-background-phs" >
+      <div className={styles.container}>
+        <div className={styles.headerWrapper}>
+          {/* Logo */}
+          <Link href="/">
+            <Image
+              src={getImageUrl("Logo/anhdaidien.png")}
+              alt="Logo"
+              width={64}
+              height={40}
+              priority
+            />
+          </Link>
+
+          {/* Khu vực */}
+          <Select
+            defaultValue="TP. HCM"
+            style={{ width: 120 }}
+            variant="borderless"
+          >
+            <Option value="TP. HCM">TP. HCM</Option>
+            <Option value="HN">Hà Nội</Option>
+            <Option value="DN">Đà Nẵng</Option>
+          </Select>
+
+          {/* Danh mục */}
+          <Select
+            defaultValue="Danh Mục "
+            style={{ width: 120 }}
+            variant="borderless"
+          >
+            <Option value="Buffet">Buffet</Option>
+            <Option value="NhaHang">Nhà Hàng</Option>
+            <Option value="AnVatViaHe">Ăn vặt/vỉa hè</Option>
+            <Option value="AnChay">Ăn chay</Option>
+            <Option value="CafeNuocuong">Cafe/Nuocuong</Option>
+            <Option value="QuanAn">Quán ăn</Option>
+            <Option value="Bar">Bar</Option>
+            <Option value="QuanNhau">Quán nhậu</Option>
+          </Select>
+
+          {/* Tìm kiếm */}
+          <Input
+            placeholder="Địa điểm, món ăn, loại hình..."
+            style={{ width: 300 }}
+            suffix={<SearchOutlined />}
           />
-        </Link>
 
-        {/* Khu vực */}
-        <Select
-          defaultValue="TP. HCM"
-          style={{ width: 120 }}
-          variant="borderless"
-        >
-          <Option value="TP. HCM">TP. HCM</Option>
-          <Option value="HN">Hà Nội</Option>
-          <Option value="DN">Đà Nẵng</Option>
-        </Select>
-
-        {/* Danh mục */}
-        <Select
-          defaultValue="Danh Mục "
-          style={{ width: 120 }}
-          variant="borderless"
-        >
-          <Option value="Buffet">Buffet</Option>
-          <Option value="NhaHang">Nhà Hàng</Option>
-          <Option value="AnVatViaHe">Ăn vặt/vỉa hè</Option>
-          <Option value="AnChay">Ăn chay</Option>
-          <Option value="CafeNuocuong">Cafe/Nuocuong</Option>
-          <Option value="QuanAn">Quán ăn</Option>
-          <Option value="Bar">Bar</Option>
-          <Option value="QuanNhau">Quán nhậu</Option>
-        </Select>
-
-        {/* Tìm kiếm */}
-        <Input
-          placeholder="Địa điểm, món ăn, loại hình..."
-          style={{ width: 300 }}
-          suffix={<SearchOutlined />}
-        />
-
-        {/* Đăng nhập/Đăng xuất */}
-        {isLoggedIn ? (
-          <Popover content={userMenu} trigger="click" placement="bottomRight">
-            <div style={{ marginLeft: 16, cursor: "pointer" }}>
-              <FaUserCircle size={28} />
+          {/* Đăng nhập/Đăng xuất */}
+          {isLoggedIn ? (
+            <Popover content={userMenu} trigger="click" placement="bottomRight">
+              <div style={{ marginLeft: 16, cursor: "pointer" }}>
+                <FaUserCircle size={28} />
+              </div>
+            </Popover>
+          ) : (
+            <div className={styles.authButtons}>
+              <Link href="/login">
+                <Button type="text">Đăng nhập</Button>
+              </Link>
+              <Link href="/register">
+                <Button type="text">Đăng ký</Button>
+              </Link>
             </div>
-          </Popover>
-        ) : (
-          <div className={styles.authButtons}>
-            <Link href="/login">
-              <Button type="text">Đăng nhập</Button>
-            </Link>
-            <Link href="/register">
-              <Button type="text">Đăng ký</Button>
-            </Link>
-          </div>
-        )}
+          )}
 
-        {/* Thông báo */}
-        <BellOutlined style={{ fontSize: 18, margin: "0 12px" }} />
+          {/* Thông báo */}
+          <BellOutlined style={{ fontSize: 18, margin: "0 12px" }} />
 
-        <LanguageSelector />
-        <ThemeToggleButton />
+          <LanguageSelector />
+          <ThemeToggleButton />
+        </div>
       </div>
     </div>
   );

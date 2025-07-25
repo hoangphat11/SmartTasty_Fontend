@@ -6,10 +6,11 @@ const axiosInstance = axios.create({
   timeout: 60000,
   headers: {
     Accept: "application/json",
+    // Không set Content-Type ở đây để có thể tùy biến theo từng request
   },
 });
 
-// Thêm interceptor để gắn token vào header Authorization
+// Interceptor: Gắn token + xử lý Content-Type động
 axiosInstance.interceptors.request.use(
   (config) => {
     if (typeof window !== "undefined") {
@@ -26,6 +27,16 @@ axiosInstance.interceptors.request.use(
         }
       }
     }
+
+    // ✅ Nếu là FormData, KHÔNG tự set Content-Type (để axios tự gán với boundary)
+    const isFormData =
+      config.data instanceof FormData ||
+      (typeof FormData !== "undefined" && config.data instanceof FormData);
+
+    if (!isFormData && !config.headers["Content-Type"]) {
+      config.headers["Content-Type"] = "application/json";
+    }
+
     return config;
   },
   (error) => Promise.reject(error)

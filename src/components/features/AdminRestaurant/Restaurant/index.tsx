@@ -1,13 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, Typography, Button, Row, Col, Tag, Skeleton } from "antd";
+import {
+  Box,
+  Button,
+  Grid,
+  Paper,
+  Typography,
+  Chip,
+  CircularProgress,
+} from "@mui/material";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import styles from "./styles.module.scss";
-
-const { Title, Paragraph } = Typography;
 
 interface Dish {
   id: number;
@@ -21,13 +27,21 @@ interface Dish {
     name: string;
     address: string;
   };
+  imageUrl?: string;
+}
+
+interface RestaurantInfo {
+  id: number;
+  name: string;
+  address: string;
+  imageUrl: string;
 }
 
 const RestaurantPage = () => {
   const [restaurantId, setRestaurantId] = useState<number | null>(null);
-  const [restaurantInfo, setRestaurantInfo] = useState<
-    Dish["restaurant"] | null
-  >(null);
+  const [restaurantInfo, setRestaurantInfo] = useState<RestaurantInfo | null>(
+    null
+  );
   const [dishes, setDishes] = useState<Dish[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
@@ -43,7 +57,6 @@ const RestaurantPage = () => {
       return;
     }
 
-    // Gọi API lấy danh sách nhà hàng của user để lấy ID
     axios
       .get(`https://smarttasty-backend.onrender.com/api/Restaurant`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -57,11 +70,13 @@ const RestaurantPage = () => {
           setRestaurantId(null);
           setRestaurantInfo(null);
         } else {
-          setRestaurantId(ownedRestaurants[0].id);
+          const restaurant = ownedRestaurants[0];
+          setRestaurantId(restaurant.id);
           setRestaurantInfo({
-            id: ownedRestaurants[0].id,
-            name: ownedRestaurants[0].name,
-            address: ownedRestaurants[0].address,
+            id: restaurant.id,
+            name: restaurant.name,
+            address: restaurant.address,
+            imageUrl: restaurant.imageUrl,
           });
         }
       })
@@ -76,88 +91,103 @@ const RestaurantPage = () => {
       .get(
         `https://smarttasty-backend.onrender.com/api/Dishes/restaurant/${restaurantId}`
       )
-      .then((res) => setDishes(res.data || []))
+      .then((res) => {
+        const enhancedDishes = (res.data || []).map((dish: Dish) => ({
+          ...dish,
+          imageUrl: `https://res.cloudinary.com/djcur1ymq/image/upload/${dish.image}`,
+        }));
+        setDishes(enhancedDishes);
+      })
       .catch(() => toast.error("Không thể lấy danh sách món ăn."))
       .finally(() => setLoading(false));
   }, [restaurantId]);
 
   if (!restaurantId || !restaurantInfo) {
     return (
-      <div className={styles.loginContainer}>
-        <Card className={styles.loginCard}>
-          <Title level={3}>Bạn chưa có nhà hàng</Title>
-          <Paragraph>Vui lòng tạo nhà hàng để bắt đầu quản lý.</Paragraph>
+      <Box className={styles.loginContainer}>
+        <Paper elevation={3} className={styles.loginCard}>
+          <Typography variant="h5" gutterBottom>
+            Bạn chưa có nhà hàng
+          </Typography>
+          <Typography paragraph>
+            Vui lòng tạo nhà hàng để bắt đầu quản lý.
+          </Typography>
           <Button
-            type="primary"
+            variant="contained"
+            color="primary"
             onClick={() => router.push("/createrestaurant")}
           >
             Tạo nhà hàng
           </Button>
-        </Card>
-      </div>
+        </Paper>
+      </Box>
     );
   }
 
   return (
-    <div className={styles.pageContainer}>
-      <Card className={styles.restaurantCard}>
-        <Title level={2}>{restaurantInfo.name}</Title>
-        <Paragraph>
-          <strong>Địa chỉ:</strong> {restaurantInfo.address}
-        </Paragraph>
-      </Card>
+    <Box className={styles.pageContainer}>
+      <Paper elevation={3} className={styles.restaurantCard}>
+        <Box className={styles.restaurantContent}>
+          <Box className={styles.restaurantImageWrapper}>
+            <img
+              src={restaurantInfo.imageUrl}
+              alt="Ảnh nhà hàng"
+              className={styles.restaurantImage}
+            />
+          </Box>
+          <Box className={styles.restaurantInfo}>
+            <Typography variant="h4">{restaurantInfo.name}</Typography>
+            <Typography>
+              <strong>Địa chỉ:</strong> {restaurantInfo.address}
+            </Typography>
+          </Box>
+        </Box>
+      </Paper>
 
-      <div className={styles.menuContainer}>
-        <Title level={3}>Thực đơn</Title>
+      <Box className={styles.menuContainer}>
+        <Typography variant="h5" gutterBottom>
+          Thực đơn
+        </Typography>
 
         {loading ? (
-          <Row gutter={[16, 16]}>
-            {[...Array(4)].map((_, i) => (
-              <Col key={i} xs={24} sm={12} md={8} lg={6}>
-                <Card loading />
-              </Col>
-            ))}
-          </Row>
+          <Box display="flex" justifyContent="center" py={4}>
+            <CircularProgress />
+          </Box>
         ) : dishes.length === 0 ? (
-          <Paragraph>Chưa có món ăn nào trong nhà hàng.</Paragraph>
+          <Typography>Chưa có món ăn nào trong nhà hàng.</Typography>
         ) : (
-          <Row gutter={[16, 16]}>
+          <Grid container spacing={2}>
             {dishes.map((dish) => (
-              <Col key={dish.id} xs={24} sm={12} md={8} lg={6}>
-                <Card
-                  hoverable
-                  cover={
-                    <img
-                      alt={dish.name}
-                      src={`https://smarttasty-backend.onrender.com/${dish.image}`}
-                      style={{ height: 160, objectFit: "cover" }}
-                    />
-                  }
-                >
-                  <Card.Meta
-                    title={
-                      <>
-                        {dish.name}
-                        {!dish.isActive && (
-                          <Tag color="red" style={{ marginLeft: 8 }}>
-                            Ngưng bán
-                          </Tag>
-                        )}
-                      </>
-                    }
-                    description={
-                      <p style={{ fontWeight: "bold", color: "#fa541c" }}>
-                        {dish.price.toLocaleString()}đ
-                      </p>
-                    }
+              <Grid item xs={12} sm={6} md={4} lg={3} key={dish.id}>
+                <Paper elevation={2}>
+                  <img
+                    src={dish.imageUrl}
+                    alt={dish.name}
+                    style={{ width: "100%", height: 160, objectFit: "cover" }}
                   />
-                </Card>
-              </Col>
+                  <Box p={2}>
+                    <Typography variant="h6">
+                      {dish.name}
+                      {!dish.isActive && (
+                        <Chip
+                          label="Ngưng bán"
+                          color="error"
+                          size="small"
+                          style={{ marginLeft: 8 }}
+                        />
+                      )}
+                    </Typography>
+                    <Typography fontWeight="bold" color="primary">
+                      {dish.price.toLocaleString()}đ
+                    </Typography>
+                  </Box>
+                </Paper>
+              </Grid>
             ))}
-          </Row>
+          </Grid>
         )}
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 };
 

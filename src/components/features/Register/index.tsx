@@ -79,7 +79,10 @@ const Register = () => {
     e.preventDefault();
     if (!validate()) return;
 
-    const action = await dispatch(createUser(formValues));
+    const action = await dispatch(
+      createUser({ ...formValues, Role: "user" }) // 👈 Gán role là "user"
+    );
+
     if (createUser.fulfilled.match(action)) {
       toast.success("Đăng ký thành công!");
       router.push("/");

@@ -2,9 +2,13 @@ export interface Dish {
   id: number;
   name: string;
   price: number;
-  description?: string;
-  category: "ThucAn" | "NuocUong" | "ThucAnThem";
+  image: string;
+  imageUrl: string; // Phải có field này
   isActive: boolean;
-  image?: string;
-  restaurantId: number;
+  category: string;
+  restaurant: {
+    id: number;
+    name: string;
+    address: string;
+  };
 }

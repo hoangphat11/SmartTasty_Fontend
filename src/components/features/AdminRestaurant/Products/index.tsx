@@ -1,47 +1,44 @@
 "use client";
 
+import React, { useEffect, useState } from "react";
 import {
-  Card,
+  Box,
   Button,
-  Table,
-  Tag,
-  Space,
-  Modal,
-  Form,
-  Input,
-  InputNumber,
-  Upload,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Grid,
+  TextField,
+  MenuItem,
   Switch,
-  Select,
-  message,
-} from "antd";
+  Typography,
+  Card,
+  CardContent,
+  CircularProgress,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  IconButton,
+} from "@mui/material";
 import {
-  UploadOutlined,
-  PlusOutlined,
-  EditOutlined,
-  DeleteOutlined,
-} from "@ant-design/icons";
-import { useEffect, useState } from "react";
-import axios from "axios";
-
-const { Option } = Select;
-const API_URL = "https://smarttasty-backend.onrender.com/api";
-
-interface Dish {
-  id: number;
-  name: string;
-  price: number;
-  description?: string;
-  category: string;
-  isActive: boolean;
-  imageUrl?: string;
-  image?: string;
-  restaurant: {
-    id: number;
-    name: string;
-    address: string;
-  };
-}
+  Add as AddIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  UploadFile as UploadIcon,
+} from "@mui/icons-material";
+import { useAppDispatch, useAppSelector } from "@/redux/hook";
+import {
+  fetchDishes,
+  addDish,
+  updateDish,
+  deleteDish,
+} from "@/redux/slices/dishSlide";
+import { Dish } from "@/types/dish";
 
 const getUserFromLocalStorage = () => {
   try {
@@ -52,290 +49,285 @@ const getUserFromLocalStorage = () => {
 };
 
 const ProductPage = () => {
-  const [dishes, setDishes] = useState<Dish[]>([]);
-  const [restaurantId, setRestaurantId] = useState<number | null>(null);
-  const [loading, setLoading] = useState(false);
+  const dispatch = useAppDispatch();
+  const { items: dishes, loading } = useAppSelector((state) => state.dishes);
+
+  const [restaurantId, setRestaurantId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [editingDish, setEditingDish] = useState<Dish | null>(null);
-  const [fileList, setFileList] = useState<any[]>([]);
-  const [form] = Form.useForm();
+  const [formData, setFormData] = useState({
+    name: "",
+    price: "",
+    description: "",
+    category: "ThucAn",
+    isActive: true,
+  });
+  const [file, setFile] = useState<File | null>(null);
 
   useEffect(() => {
     const { token, user } = getUserFromLocalStorage();
     const userId = user?.userId;
     if (!token || !userId) return;
 
-    axios
-      .get(`${API_URL}/Restaurant`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+    fetch(`${"https://smarttasty-backend.onrender.com/api"}/Restaurant`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => res.json())
       .then((res) => {
-        const myRestaurant = res.data?.data?.find(
-          (r: any) => r.ownerId === userId
-        );
-        if (!myRestaurant?.id) {
-          message.error("Tài khoản chưa có nhà hàng!");
-          return;
-        }
+        const myRestaurant = res.data?.find((r: any) => r.ownerId === userId);
+        if (!myRestaurant?.id) return alert("Tài khoản chưa có nhà hàng!");
         setRestaurantId(myRestaurant.id);
-        fetchDishes(myRestaurant.id);
+        dispatch(fetchDishes(myRestaurant.id));
       })
-      .catch(() => message.error("Không thể lấy thông tin nhà hàng"));
-  }, []);
+      .catch(() => alert("Không thể lấy thông tin nhà hàng"));
+  }, [dispatch]);
 
-  const fetchDishes = async (id: number) => {
-    setLoading(true);
-    try {
-      const res = await axios.get(`${API_URL}/Dishes/restaurant/${id}`);
-      setDishes(res.data);
-    } catch {
-      message.error("Không thể lấy danh sách món ăn");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleOpenModal = (dish?: Dish) => {
+  const handleOpenModal = (dish: Dish | null = null) => {
     if (dish) {
       setEditingDish(dish);
-      form.setFieldsValue({
+      setFormData({
         name: dish.name,
-        price: dish.price,
+        price: dish.price.toString(),
         description: dish.description,
         category: dish.category,
         isActive: dish.isActive,
       });
-
-      if (dish.imageUrl) {
-        setFileList([
-          {
-            uid: "-1",
-            name: "image.png",
-            status: "done",
-            url: dish.imageUrl,
-          },
-        ]);
-      }
     } else {
       setEditingDish(null);
-      form.resetFields();
-      setFileList([]);
+      setFormData({
+        name: "",
+        price: "",
+        description: "",
+        category: "ThucAn",
+        isActive: true,
+      });
+      setFile(null);
     }
     setOpen(true);
   };
 
-  const handleFinish = async (values: any) => {
+  const handleSubmit = async () => {
     const { token } = getUserFromLocalStorage();
     if (!token || !restaurantId) return;
 
-    const formData = new FormData();
-    formData.append("Name", values.name);
-    formData.append("Price", values.price);
-    formData.append("Description", values.description || "");
-    formData.append("Category", values.category);
-    formData.append("IsActive", values.isActive);
-    formData.append("RestaurantId", restaurantId.toString());
-
-    if (!fileList.length || !fileList[0].originFileObj) {
-      return message.error("Vui lòng tải ảnh món ăn");
-    }
-
-    formData.append("Image", fileList[0].originFileObj);
+    const form = new FormData();
+    Object.entries(formData).forEach(([key, val]) => form.append(key, val));
+    form.append("RestaurantId", restaurantId);
+    if (file) form.append("file", file);
+    else if (!editingDish) return alert("Vui lòng tải ảnh món ăn");
 
     try {
       if (editingDish) {
-        await axios.put(`${API_URL}/Dishes/${editingDish.id}`, formData, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
-          },
-        });
-        message.success("✅ Cập nhật món ăn thành công");
+        await dispatch(updateDish({ id: editingDish.id, data: form })).unwrap();
+        alert("Cập nhật món ăn thành công");
       } else {
-        await axios.post(`${API_URL}/Dishes`, formData, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
-          },
-        });
-        message.success("✅ Thêm món ăn thành công");
+        await dispatch(addDish(form)).unwrap();
+        alert("Thêm món ăn thành công");
       }
-
-      fetchDishes(restaurantId);
-      form.resetFields();
-      setFileList([]);
       setOpen(false);
-    } catch (err) {
-      console.error("❌ Lỗi khi lưu món ăn:", err);
-      message.error("Thao tác thất bại");
+    } catch {
+      alert("Thao tác thất bại");
     }
   };
 
-  const handleDelete = (id: number) => {
-    const { token } = getUserFromLocalStorage();
-    Modal.confirm({
-      title: "Bạn chắc chắn muốn xoá món ăn này?",
-      onOk: async () => {
-        try {
-          await axios.delete(`${API_URL}/Dishes/${id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          message.success("Đã xoá món ăn");
-          if (restaurantId) fetchDishes(restaurantId);
-        } catch {
-          message.error("Xoá món ăn thất bại");
-        }
-      },
-    });
+  const handleDelete = async (id: string) => {
+    if (!window.confirm("Bạn chắc chắn muốn xoá món ăn này?")) return;
+    try {
+      await dispatch(deleteDish(id)).unwrap();
+      alert("Đã xoá món ăn");
+    } catch {
+      alert("Xoá món ăn thất bại");
+    }
   };
 
-  const columns = [
-    {
-      title: "Tên món",
-      dataIndex: "name",
-    },
-    {
-      title: "Giá",
-      dataIndex: "price",
-      render: (price: number) => `${price.toLocaleString()}đ`,
-    },
-    {
-      title: "Danh mục",
-      dataIndex: "category",
-    },
-    {
-      title: "Trạng thái",
-      dataIndex: "isActive",
-      render: (active: boolean) =>
-        active ? (
-          <Tag color="green">Đang bán</Tag>
-        ) : (
-          <Tag color="red">Ngưng</Tag>
-        ),
-    },
-    {
-      title: "Hình ảnh",
-      dataIndex: "imageUrl",
-      render: (url: string) =>
-        url ? (
-          <img
-            src={url}
-            alt="dish"
-            style={{
-              width: 60,
-              height: 60,
-              objectFit: "cover",
-              borderRadius: 6,
-            }}
-          />
-        ) : (
-          <Tag>Không có ảnh</Tag>
-        ),
-    },
-    {
-      title: "Hành động",
-      render: (_: any, record: Dish) => (
-        <Space>
-          <Button
-            icon={<EditOutlined />}
-            onClick={() => handleOpenModal(record)}
-          >
-            Sửa
-          </Button>
-          <Button
-            icon={<DeleteOutlined />}
-            danger
-            onClick={() => handleDelete(record.id)}
-          >
-            Xoá
-          </Button>
-        </Space>
-      ),
-    },
-  ];
-
   return (
-    <div style={{ padding: 24 }}>
-      <Card
-        title="Quản lý món ăn"
-        extra={
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => handleOpenModal()}
+    <Box p={3}>
+      <Card>
+        <CardContent>
+          <Box
+            display="flex"
+            justifyContent="space-between"
+            alignItems="center"
+            mb={2}
           >
-            Thêm món
-          </Button>
-        }
-      >
-        <Table
-          dataSource={dishes}
-          rowKey="id"
-          columns={columns}
-          loading={loading}
-        />
+            <Typography variant="h6">Quản lý món ăn</Typography>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => handleOpenModal()}
+            >
+              Thêm món
+            </Button>
+          </Box>
+
+          {loading ? (
+            <CircularProgress />
+          ) : (
+            <TableContainer component={Paper}>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Tên món</TableCell>
+                    <TableCell>Giá</TableCell>
+                    <TableCell>Danh mục</TableCell>
+                    <TableCell>Trạng thái</TableCell>
+                    <TableCell>Hình ảnh</TableCell>
+                    <TableCell>Hành động</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {dishes.map((dish) => (
+                    <TableRow key={dish.id}>
+                      <TableCell>{dish.name}</TableCell>
+                      <TableCell>
+                        {parseInt(dish.price.toString()).toLocaleString()}đ
+                      </TableCell>
+                      <TableCell>{dish.category}</TableCell>
+                      <TableCell>
+                        <Typography color={dish.isActive ? "green" : "red"}>
+                          {dish.isActive ? "Đang bán" : "Ngưng"}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        {dish.imageUrl ? (
+                          <img
+                            src={dish.imageUrl}
+                            alt="dish"
+                            style={{
+                              width: 60,
+                              height: 60,
+                              borderRadius: 6,
+                              objectFit: "cover",
+                            }}
+                          />
+                        ) : (
+                          <Typography>Không có ảnh</Typography>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <IconButton onClick={() => handleOpenModal(dish)}>
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton
+                          color="error"
+                          onClick={() => handleDelete(dish.id)}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+        </CardContent>
       </Card>
 
-      <Modal
-        title={editingDish ? "Sửa món ăn" : "Thêm món ăn"}
+      <Dialog
         open={open}
-        onCancel={() => {
-          setOpen(false);
-          setEditingDish(null);
-          form.resetFields();
-          setFileList([]);
-        }}
-        onOk={() => form.submit()}
-        okText={editingDish ? "Cập nhật" : "Thêm"}
+        onClose={() => setOpen(false)}
+        fullWidth
+        maxWidth="sm"
       >
-        <Form form={form} layout="vertical" onFinish={handleFinish}>
-          <Form.Item name="name" label="Tên món" rules={[{ required: true }]}>
-            <Input />
-          </Form.Item>
-          <Form.Item name="price" label="Giá" rules={[{ required: true }]}>
-            <InputNumber style={{ width: "100%" }} min={0} />
-          </Form.Item>
-          <Form.Item name="description" label="Mô tả">
-            <Input.TextArea rows={2} />
-          </Form.Item>
-          <Form.Item
-            name="category"
-            label="Danh mục"
-            rules={[{ required: true }]}
-          >
-            <Select>
-              <Option value="ThucAn">Thức ăn</Option>
-              <Option value="NuocUong">Nước uống</Option>
-              <Option value="ThucAnThem">Thức ăn thêm</Option>
-            </Select>
-          </Form.Item>
-          <Form.Item name="isActive" label="Kinh doanh" valuePropName="checked">
-            <Switch defaultChecked />
-          </Form.Item>
-          <Form.Item
-            name="image"
-            label="Hình ảnh"
-            rules={[{ required: true, message: "Vui lòng tải ảnh món ăn" }]}
-          >
-            <Upload
-              name="image"
-              listType="picture"
-              accept="image/*"
-              fileList={fileList}
-              maxCount={1}
-              showUploadList={{ showRemoveIcon: true }}
-              beforeUpload={() => false}
-              onChange={({ fileList }) => setFileList(fileList)}
-              onRemove={() => {
-                setFileList([]);
-              }}
-            >
-              <Button icon={<UploadOutlined />}>Chọn ảnh</Button>
-            </Upload>
-          </Form.Item>
-        </Form>
-      </Modal>
-    </div>
+        <DialogTitle>{editingDish ? "Sửa món ăn" : "Thêm món ăn"}</DialogTitle>
+        <DialogContent>
+          <Grid container spacing={2} mt={1}>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Tên món"
+                value={formData.name}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                type="number"
+                fullWidth
+                label="Giá"
+                value={formData.price}
+                onChange={(e) =>
+                  setFormData({ ...formData, price: e.target.value })
+                }
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Mô tả"
+                value={formData.description}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                select
+                fullWidth
+                label="Danh mục"
+                value={formData.category}
+                onChange={(e) =>
+                  setFormData({ ...formData, category: e.target.value })
+                }
+              >
+                <MenuItem value="ThucAn">Thức ăn</MenuItem>
+                <MenuItem value="NuocUong">Nước uống</MenuItem>
+                <MenuItem value="ThucAnThem">Thức ăn thêm</MenuItem>
+              </TextField>
+            </Grid>
+            <Grid item xs={12}>
+              <Box display="flex" alignItems="center">
+                <Typography>Kinh doanh</Typography>
+                <Switch
+                  checked={formData.isActive}
+                  onChange={(e) =>
+                    setFormData({ ...formData, isActive: e.target.checked })
+                  }
+                />
+              </Box>
+            </Grid>
+            <Grid item xs={12}>
+              <Button
+                startIcon={<UploadIcon />}
+                component="label"
+                variant="outlined"
+              >
+                {file ? file.name : "Chọn ảnh"}
+                <input
+                  type="file"
+                  hidden
+                  accept="image/*"
+                  onChange={(e) => {
+                    const selectedFile = e.target.files?.[0];
+                    if (selectedFile) setFile(selectedFile);
+                  }}
+                />
+              </Button>
+              {editingDish && !file && editingDish.imageUrl && (
+                <Box mt={1}>
+                  <Typography variant="body2">Ảnh hiện tại:</Typography>
+                  <img
+                    src={editingDish.imageUrl}
+                    alt="current"
+                    style={{ width: 100, height: 100, objectFit: "cover" }}
+                  />
+                </Box>
+              )}
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpen(false)}>Hủy</Button>
+          <Button onClick={handleSubmit} variant="contained">
+            {editingDish ? "Cập nhật" : "Thêm"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
   );
 };
 

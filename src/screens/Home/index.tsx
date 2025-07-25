@@ -1,4 +1,11 @@
+import SlideHeader from "@/components/layouts/SlideHeader";
+import Test from "@/components/Test";
 const index = () => {
-  return <></>;
+  return (
+    <>
+      <SlideHeader />
+      <Test />
+    </>
+  );
 };
 export default index;

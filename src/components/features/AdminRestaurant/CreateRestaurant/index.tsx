@@ -1,79 +1,74 @@
 "use client";
 
 import {
-  Form,
-  Input,
+  Box,
   Button,
   Card,
-  Typography,
-  TimePicker,
+  CardContent,
+  MenuItem,
   Select,
-} from "antd";
-import { useState } from "react";
+  TextField,
+  Typography,
+  InputLabel,
+  FormControl,
+} from "@mui/material";
+import { TimePicker } from "@mui/x-date-pickers/TimePicker";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import axiosInstance from "@/lib/axios/axiosInstance";
-import styles from "./styles.module.scss";
-import { toast } from "react-toastify";
 import dynamic from "next/dynamic";
+import { toast } from "react-toastify";
+import dayjs from "dayjs";
+import { useAppDispatch, useAppSelector } from "@/redux/hook";
+import { createRestaurant } from "@/redux/slices/restaurantSlice";
 
 const MapView = dynamic(() => import("@/components/layouts/MapView"), {
   ssr: false,
 });
 
-const { Title } = Typography;
-
 const RestaurantCreatePage = () => {
-  const [loading, setLoading] = useState(false);
-  const [latitude, setLatitude] = useState<number>(10.762622);
-  const [longitude, setLongitude] = useState<number>(106.660172);
-  const [form] = Form.useForm();
   const router = useRouter();
+  const dispatch = useAppDispatch();
+  const [mounted, setMounted] = useState(false);
+  const { loading } = useAppSelector((state) => state.restaurant);
 
-  const handleCreate = async (values: any) => {
-    setLoading(true);
-    try {
-      const tokenData = JSON.parse(localStorage.getItem("user") || "{}");
-      const payload = {
-        ownerId: tokenData.user.userId,
-        ownerEmail: tokenData.user.email,
-        ownerName: tokenData.user.userName,
-        ownerPhone: tokenData.user.phone,
-        name: values.name,
-        category: values.category,
-        address: values.address,
-        latitude,
-        longitude,
-        description: values.description,
-        openTime: values.openTime.format("HH:mm"),
-        closeTime: values.closeTime.format("HH:mm"),
-        status: "pending",
-        isHidden: false,
-        // Nếu sau này backend xử lý ảnh riêng, có thể bỏ thêm:
-        // imagePublicId: "…", imageUrl: "…"
-      };
+  const [form, setForm] = useState({
+    name: "",
+    category: "",
+    address: "",
+    description: "",
+    openTime: dayjs(),
+    closeTime: dayjs(),
+  });
 
-      const response = await axiosInstance.post("/api/Restaurant", payload);
+  const [latitude, setLatitude] = useState(10.762622);
+  const [longitude, setLongitude] = useState(106.660172);
+  const [file, setFile] = useState<File | null>(null);
 
-      const { errMessage } = response.data;
-      if (errMessage === "Created") {
-        toast.success("Tạo nhà hàng thành công!");
-        router.push("/restaurant");
-      } else {
-        toast.error("Tạo thất bại, vui lòng kiểm tra lại!");
-      }
-    } catch (error: any) {
-      toast.error("Có lỗi xảy ra khi tạo nhà hàng.");
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSelectChange = (e: any) => {
+    setForm((prev) => ({ ...prev, category: e.target.value }));
+  };
+
+  const handleTimeChange = (name: string, value: any) => {
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleAddressChange = async (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
     const address = e.target.value;
-    form.setFieldsValue({ address });
+    setForm((prev) => ({ ...prev, address }));
+
     if (!address.trim()) return;
 
     try {
@@ -88,78 +83,158 @@ const RestaurantCreatePage = () => {
         const lon = parseFloat(data[0].lon);
         setLatitude(lat);
         setLongitude(lon);
-        form.setFieldsValue({ latitude: lat, longitude: lon });
       } else {
         toast.error("Không tìm thấy tọa độ từ địa chỉ.");
       }
-    } catch {
+    } catch (err) {
       toast.error("Lỗi khi lấy tọa độ từ địa chỉ.");
     }
   };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!file) return toast.error("Vui lòng chọn ảnh trước khi tạo.");
+
+    const restaurantData = {
+      ...form,
+      latitude,
+      longitude,
+      openTime: form.openTime.format("HH:mm"),
+      closeTime: form.closeTime.format("HH:mm"),
+      file,
+    };
+
+    const resultAction = await dispatch(createRestaurant(restaurantData));
+    if (createRestaurant.fulfilled.match(resultAction)) {
+      toast.success("Tạo nhà hàng thành công!");
+      router.push("/restaurant");
+    } else {
+      toast.error("Tạo thất bại, vui lòng kiểm tra lại!");
+    }
+  };
+
   return (
-    <div className={styles.loginContainer}>
-      <Card className={styles.loginCard}>
-        <Title level={2} style={{ textAlign: "center" }}>
-          Tạo nhà hàng mới
-        </Title>
-        <Form layout="vertical" onFinish={handleCreate} form={form}>
-          {/* Các trường Input giống như trước */}
-          <Form.Item label="Tên" name="name" rules={[{ required: true }]}>
-            <Input />
-          </Form.Item>
-          <Form.Item
-            label="Danh mục"
-            name="category"
-            rules={[{ required: true }]}
-          >
-            <Select placeholder="Chọn loại hình nhà hàng">
-              <Select.Option value="nhaHang">Nhà hàng</Select.Option>
-              <Select.Option value="Buffet">Buffet</Select.Option>
-              <Select.Option value="AnVatViaHe">Ăn vặt/vỉa hè</Select.Option>
-              <Select.Option value="AnChay">Ăn chay</Select.Option>
-              <Select.Option value="CafeNuocuong">Cafe/Nuocuong</Select.Option>
-              <Select.Option value="QuanAn">Quán ăn</Select.Option>
-              <Select.Option value="Bar">Bar</Select.Option>
-              <Select.Option value="QuanNhau">Quán nhậu</Select.Option>
-            </Select>
-          </Form.Item>
-          <Form.Item
-            label="Địa chỉ"
-            name="address"
-            rules={[{ required: true }]}
-          >
-            <Input onChange={handleAddressChange} />
-          </Form.Item>
-          <Form.Item
-            label="Mô tả"
-            name="description"
-            rules={[{ required: true }]}
-          >
-            <Input.TextArea rows={3} />
-          </Form.Item>
-          <Form.Item
-            label="Mở cửa"
-            name="openTime"
-            rules={[{ required: true }]}
-          >
-            <TimePicker format="HH:mm" />
-          </Form.Item>
-          <Form.Item
-            label="Đóng cửa"
-            name="closeTime"
-            rules={[{ required: true }]}
-          >
-            <TimePicker format="HH:mm" />
-          </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit" loading={loading} block>
-              Tạo nhà hàng
+    <Box display="flex" justifyContent="center" p={3}>
+      <Card sx={{ width: 600 }}>
+        <CardContent>
+          <Typography variant="h5" align="center" gutterBottom>
+            Tạo nhà hàng mới
+          </Typography>
+          <form onSubmit={handleSubmit} encType="multipart/form-data">
+            <TextField
+              fullWidth
+              label="Tên nhà hàng"
+              name="name"
+              value={form.name}
+              onChange={handleChange}
+              margin="normal"
+              required
+            />
+            <FormControl fullWidth margin="normal" required>
+              <InputLabel>Danh mục</InputLabel>
+              <Select
+                value={form.category}
+                onChange={handleSelectChange}
+                label="Danh mục"
+              >
+                <MenuItem value="Buffet">Buffet</MenuItem>
+                <MenuItem value="NhaHang">Nhà hàng</MenuItem>
+                <MenuItem value="AnVatViaHe">Ăn vặt/vỉa hè</MenuItem>
+                <MenuItem value="AnChay">Ăn chay</MenuItem>
+                <MenuItem value="CafeNuocuong">Cafe/Nuocuong</MenuItem>
+                <MenuItem value="QuanAn">Quán ăn</MenuItem>
+                <MenuItem value="Bar">Bar</MenuItem>
+                <MenuItem value="QuanNhau">Quán nhậu</MenuItem>
+              </Select>
+            </FormControl>
+
+            <TextField
+              fullWidth
+              label="Địa chỉ"
+              name="address"
+              value={form.address}
+              onChange={handleAddressChange}
+              margin="normal"
+              required
+            />
+
+            {mounted && (
+              <Box mt={2}>
+                <MapView
+                  initialLat={latitude}
+                  initialLng={longitude}
+                  isMarkerFixed={true}
+                  lat={latitude}
+                  lng={longitude}
+                />
+                <Typography variant="body2" mt={1}>
+                  Vĩ độ: {latitude.toFixed(6)} | Kinh độ: {longitude.toFixed(6)}
+                </Typography>
+              </Box>
+            )}
+
+            <TextField
+              fullWidth
+              multiline
+              rows={3}
+              label="Mô tả"
+              name="description"
+              value={form.description}
+              onChange={handleChange}
+              margin="normal"
+              required
+            />
+
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <Box display="flex" gap={2} mt={2}>
+                <TimePicker
+                  label="Giờ mở cửa"
+                  value={form.openTime}
+                  onChange={(val) => handleTimeChange("openTime", val)}
+                />
+                <TimePicker
+                  label="Giờ đóng cửa"
+                  value={form.closeTime}
+                  onChange={(val) => handleTimeChange("closeTime", val)}
+                />
+              </Box>
+            </LocalizationProvider>
+
+            <Box mt={2}>
+              <Button variant="outlined" component="label">
+                Chọn ảnh đại diện
+                <input
+                  type="file"
+                  hidden
+                  accept="image/*"
+                  onChange={(e) => {
+                    if (e.target.files?.[0]) {
+                      setFile(e.target.files[0]);
+                    }
+                  }}
+                />
+              </Button>
+              {file && (
+                <Typography variant="body2" mt={1}>
+                  Đã chọn: {file.name}
+                </Typography>
+              )}
+            </Box>
+
+            <Button
+              type="submit"
+              variant="contained"
+              color="primary"
+              fullWidth
+              sx={{ mt: 3 }}
+              disabled={loading}
+            >
+              {loading ? "Đang tạo..." : "Tạo nhà hàng"}
             </Button>
-          </Form.Item>
-        </Form>
+          </form>
+        </CardContent>
       </Card>
-    </div>
+    </Box>
   );
 };
 
