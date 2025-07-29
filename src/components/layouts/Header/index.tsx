@@ -1,17 +1,25 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Button, Popover, Input, Select } from "antd";
 import Link from "next/link";
-import { FaUserCircle } from "react-icons/fa";
-import { BellOutlined, SearchOutlined } from "@ant-design/icons";
 import Image from "next/image";
+import {
+  Box,
+  Button,
+  Popover,
+  TextField,
+  MenuItem,
+  Typography,
+  IconButton,
+} from "@mui/material";
+import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
+import SearchIcon from "@mui/icons-material/Search";
 import styles from "./styles.module.scss";
+import { FaUserCircle } from "react-icons/fa";
 import { getImageUrl } from "@/constants/config/imageBaseUrl";
 import LanguageSelector from "@/components/layouts/LanguageSelector";
 import ThemeToggleButton from "@/components/layouts/ThemeToggleButton";
 
-const { Option } = Select;
 
 const getCookie = (name: string): string | null => {
   if (typeof document === "undefined") return null;
@@ -23,9 +31,9 @@ const Header = () => {
   const [localUserName, setLocalUserName] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [hydrated, setHydrated] = useState(false);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   useEffect(() => {
-    // Tránh lỗi hydration
     setHydrated(true);
 
     const token = getCookie("token");
@@ -52,106 +60,154 @@ const Header = () => {
     window.location.href = "/login";
   };
 
-  const userMenu = (
-    <div className={styles.popoverMenu}>
-      <div
-        style={{
-          padding: "8px 16px",
-          fontWeight: "600",
-          borderBottom: "1px solid #f0f0f0",
-          marginBottom: 8,
-        }}
-      >
-        Xin chào, {localUserName || "User"}
-      </div>
-      <Link href="/account">
-        <Button type="text" block>
-          Tài khoản
-        </Button>
-      </Link>
-      <Button type="text" danger block onClick={handleLogout}>
-        Đăng xuất
-      </Button>
-    </div>
-  );
+  const handlePopoverOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handlePopoverClose = () => {
+    setAnchorEl(null);
+  };
+
+  const open = Boolean(anchorEl);
 
   if (!hydrated) return null;
 
   return (
-    <div className="p-4 border-4 border-red-500 bg-background-phs" >
-      <div className={styles.container}>
-        <div className={styles.headerWrapper}>
-          {/* Logo */}
-          <Link href="/">
-            <Image
-              src={getImageUrl("Logo/anhdaidien.png")}
-              alt="Logo"
-              width={64}
-              height={40}
-              priority
-            />
-          </Link>
-
-          {/* Khu vực */}
-          <Select
-            defaultValue="TP. HCM"
-            style={{ width: 120 }}
-            variant="borderless"
-          >
-            <Option value="TP. HCM">TP. HCM</Option>
-            <Option value="HN">Hà Nội</Option>
-            <Option value="DN">Đà Nẵng</Option>
-          </Select>
-
-          {/* Danh mục */}
-          <Select
-            defaultValue="Danh Mục "
-            style={{ width: 120 }}
-            variant="borderless"
-          >
-            <Option value="Buffet">Buffet</Option>
-            <Option value="NhaHang">Nhà Hàng</Option>
-            <Option value="AnVatViaHe">Ăn vặt/vỉa hè</Option>
-            <Option value="AnChay">Ăn chay</Option>
-            <Option value="CafeNuocuong">Cafe/Nuocuong</Option>
-            <Option value="QuanAn">Quán ăn</Option>
-            <Option value="Bar">Bar</Option>
-            <Option value="QuanNhau">Quán nhậu</Option>
-          </Select>
-
-          {/* Tìm kiếm */}
-          <Input
-            placeholder="Địa điểm, món ăn, loại hình..."
-            style={{ width: 300 }}
-            suffix={<SearchOutlined />}
+    <Box sx={{ p: 2, bgcolor: "background.paper", boxShadow: 1 }}>
+      <Box
+        sx={{
+          maxWidth: "1200px",
+          mx: "auto",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          flexWrap: "wrap",
+          gap: 2,
+        }}
+      >
+        {/* Left: Logo */}
+        <Link href="/">
+          <Image
+            src={getImageUrl("Logo/anhdaidien.png")}
+            alt="Logo"
+            width={64}
+            height={40}
+            priority
           />
+        </Link>
 
-          {/* Đăng nhập/Đăng xuất */}
+        {/* Middle: Filter + Search */}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            flexWrap: "wrap",
+            gap: 2,
+            flex: 1,
+            justifyContent: "center",
+          }}
+        >
+          <TextField
+            select
+            defaultValue="TP. HCM"
+            size="small"
+            variant="standard"
+            sx={{ minWidth: 120 }}
+          >
+            <MenuItem value="TP. HCM">TP. HCM</MenuItem>
+            <MenuItem value="HN">Hà Nội</MenuItem>
+            <MenuItem value="DN">Đà Nẵng</MenuItem>
+          </TextField>
+
+          <TextField
+            select
+            defaultValue="Buffet"
+            size="small"
+            variant="standard"
+            sx={{ minWidth: 160 }}
+          >
+            <MenuItem value="Buffet">Buffet</MenuItem>
+            <MenuItem value="NhaHang">Nhà Hàng</MenuItem>
+            <MenuItem value="AnVatViaHe">Ăn vặt/vỉa hè</MenuItem>
+            <MenuItem value="AnChay">Ăn chay</MenuItem>
+            <MenuItem value="CafeNuocuong">Cafe/Nước uống</MenuItem>
+            <MenuItem value="QuanAn">Quán ăn</MenuItem>
+            <MenuItem value="Bar">Bar</MenuItem>
+            <MenuItem value="QuanNhau">Quán nhậu</MenuItem>
+          </TextField>
+
+          <TextField
+            size="small"
+            variant="outlined"
+            placeholder="Địa điểm, món ăn, loại hình..."
+            InputProps={{
+              endAdornment: <SearchIcon />,
+            }}
+            sx={{ width: 300, maxWidth: "100%" }}
+          />
+        </Box>
+
+        {/* Right: Auth, Notification, Language, Theme */}
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           {isLoggedIn ? (
-            <Popover content={userMenu} trigger="click" placement="bottomRight">
-              <div style={{ marginLeft: 16, cursor: "pointer" }}>
-                <FaUserCircle size={28} />
-              </div>
-            </Popover>
+            <>
+              <IconButton onClick={handlePopoverOpen}>
+                <FaUserCircle size={24} />
+              </IconButton>
+              <Popover
+                open={open}
+                anchorEl={anchorEl}
+                onClose={handlePopoverClose}
+                anchorOrigin={{
+                  vertical: "bottom",
+                  horizontal: "right",
+                }}
+              >
+                <Box sx={{ p: 2, minWidth: 200 }}>
+                  <Typography fontWeight={600} mb={1}>
+                    Xin chào, {localUserName}
+                  </Typography>
+                  <Link href="/account">
+                    <Button fullWidth size="small" variant="text">
+                      Tài khoản
+                    </Button>
+                  </Link>
+                  <Button
+                    fullWidth
+                    size="small"
+                    variant="text"
+                    color="error"
+                    onClick={handleLogout}
+                  >
+                    Đăng xuất
+                  </Button>
+                </Box>
+              </Popover>
+            </>
           ) : (
-            <div className={styles.authButtons}>
+            <>
               <Link href="/login">
-                <Button type="text">Đăng nhập</Button>
+                <Button size="small" variant="text">
+                  Đăng nhập
+                </Button>
               </Link>
               <Link href="/register">
-                <Button type="text">Đăng ký</Button>
+                <Button size="small" variant="text">
+                  Đăng ký
+                </Button>
               </Link>
-            </div>
+            </>
           )}
 
-          {/* Thông báo */}
-          <BellOutlined style={{ fontSize: 18, margin: "0 12px" }} />
+          <IconButton>
+            <NotificationsNoneIcon />
+          </IconButton>
 
           <LanguageSelector />
           <ThemeToggleButton />
-        </div>
-      </div>
-    </div>
+        </Box>
+      </Box>
+    </Box>
   );
 };
 

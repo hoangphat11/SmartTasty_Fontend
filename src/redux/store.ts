@@ -3,6 +3,7 @@ import themeReducer from "./slices/useThemeSlice";
 import userReducer from "./slices/userSlice";
 import dishReducer from "./slices/dishSlide";
 import restaurantReducer from "./slices/restaurantSlice";
+import promotionReducer from "./slices/promotionSlice"
 
 export const store = configureStore({
   reducer: {
@@ -10,6 +11,7 @@ export const store = configureStore({
     user: userReducer,
     dishes: dishReducer,  
     restaurant: restaurantReducer,
+    promotion: promotionReducer,
   },
 });
 

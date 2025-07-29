@@ -3,9 +3,12 @@ export interface RestaurantForm {
   category: string;
   address: string;
   description: string;
-  openTime: string; // dạng HH:mm sau khi format
+  openTime: string;
   closeTime: string;
   latitude: number;
   longitude: number;
   file: File;
+  imageUrl?: string;
+  createdAt: string;
+  updatedAt: string;
 }

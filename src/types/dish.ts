@@ -3,7 +3,7 @@ export interface Dish {
   name: string;
   price: number;
   image: string;
-  imageUrl: string; // Phải có field này
+  imageUrl: string; 
   isActive: boolean;
   category: string;
   restaurant: {

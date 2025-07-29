@@ -1,27 +1,72 @@
 "use client";
 
-import { SearchOutlined, DeleteOutlined } from "@ant-design/icons";
-import { Avatar, Input, Popconfirm, Table } from "antd";
+import {
+  Avatar,
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  IconButton,
+  InputAdornment,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
+  Typography,
+  Pagination,
+  Tooltip,
+} from "@mui/material";
+import DeleteIcon from "@mui/icons-material/Delete";
+import SearchIcon from "@mui/icons-material/Search";
 import { useEffect, useState } from "react";
-import styles from "./styles.module.scss";
 import moment from "moment";
-import { ColumnsType } from "antd/es/table";
 import { toast } from "react-toastify";
 import axiosInstance from "@/lib/axios/axiosInstance";
 import { User } from "@/types/user";
+import styles from "./styles.module.scss";
+
+interface ExtendedUser extends User {
+  restaurants?: string;
+}
 
 const UserPage = () => {
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<ExtendedUser[]>([]);
   const [search, setSearch] = useState("");
+  const [openDialog, setOpenDialog] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 6;
 
   const fetchUsers = async () => {
     try {
-      const res = await axiosInstance.get("/api/User");
-      const allUsers: User[] = res.data.data || [];
-      const filteredUsers = allUsers.filter((user) => user.role === "business");
-      setUsers(filteredUsers);
+      const [userRes, restaurantRes] = await Promise.all([
+        axiosInstance.get("/api/User"),
+        axiosInstance.get("/api/Restaurant"),
+      ]);
+
+      const allUsers: User[] = userRes.data.data || [];
+      const allRestaurants: any[] = restaurantRes.data.data || [];
+
+      const businessUsers = allUsers
+        .filter((user) => user.role === "business")
+        .map((user) => {
+          const userRestaurants = allRestaurants
+            .filter((r) => r.ownerId === user.userId)
+            .map((r) => r.name)
+            .join(", ");
+          return { ...user, restaurants: userRestaurants };
+        });
+
+      setUsers(businessUsers);
     } catch (error) {
-      toast.error("Không thể lấy danh sách người dùng!");
+      toast.error("Không thể lấy danh sách người dùng hoặc nhà hàng!");
     }
   };
 
@@ -29,58 +74,17 @@ const UserPage = () => {
     fetchUsers();
   }, []);
 
-  const handleDelete = async (userId: number) => {
+  const handleDelete = async () => {
+    if (!selectedUserId) return;
     try {
-      await axiosInstance.delete(`/api/User/${userId}`);
+      await axiosInstance.delete(`/api/User/${selectedUserId}`);
       toast.success("Xoá thành công!");
       fetchUsers();
+      setOpenDialog(false);
     } catch (error) {
       toast.error("Xoá thất bại!");
     }
   };
-
-  const columns: ColumnsType<User> = [
-    {
-      title: "",
-      key: "action",
-      align: "center",
-      width: 30,
-      render: (_, record) => (
-        <Popconfirm
-          title="Bạn có chắc chắn muốn xóa user này?"
-          onConfirm={() => handleDelete(record.userId)}
-          okText="Xóa"
-          cancelText="Hủy"
-        >
-          <DeleteOutlined
-            style={{ color: "red", cursor: "pointer", fontSize: "20px" }}
-          />
-        </Popconfirm>
-      ),
-    },
-    {
-      title: "UserName",
-      dataIndex: "userName",
-      key: "userName",
-      align: "center",
-      render: (text: string) => (
-        <div style={{ display: "flex", alignItems: "center" }}>
-          <Avatar>{text.charAt(0).toUpperCase()}</Avatar>
-          <span style={{ marginLeft: 8 }}>{text}</span>
-        </div>
-      ),
-    },
-    { title: "Email", dataIndex: "email", key: "email", align: "center" },
-    { title: "Phone", dataIndex: "phone", key: "phone", align: "center" },
-    { title: "Role", dataIndex: "role", key: "role", align: "center" },
-    {
-      title: "Ngày tạo",
-      dataIndex: "createdAt",
-      key: "createdAt",
-      align: "center",
-      render: (date: string) => moment(date).format("DD/MM/YYYY"),
-    },
-  ];
 
   const filteredData = users.filter(
     (user) =>
@@ -88,32 +92,116 @@ const UserPage = () => {
       user.email.toLowerCase().includes(search.toLowerCase())
   );
 
+  const pageCount = Math.ceil(filteredData.length / pageSize);
+  const paginatedData = filteredData.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
+
+  const handlePageChange = (_: React.ChangeEvent<unknown>, value: number) => {
+    setCurrentPage(value);
+  };
+
   return (
-    <div className={styles.container}>
-      <h2>Users</h2>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          marginBottom: 16,
-        }}
-      >
-        <Input
-          placeholder="Search user..."
-          prefix={<SearchOutlined />}
+    <Box className={styles.container}>
+      <Typography className={styles.header}>Danh sách Business User</Typography>
+
+      <Box className={styles.searchBox}>
+        <TextField
+          label="Tìm kiếm người dùng"
+          variant="outlined"
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{ width: 250 }}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setCurrentPage(1);
+          }}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon />
+              </InputAdornment>
+            ),
+          }}
         />
-      </div>
-      <Table
-        bordered
-        columns={columns}
-        dataSource={filteredData}
-        pagination={{ pageSize: 6 }}
-        rowKey="userId"
-      />
-    </div>
+      </Box>
+
+      <TableContainer component={Paper} className={styles.tableContainer}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell align="center">Xoá</TableCell>
+              <TableCell>UserName</TableCell>
+              <TableCell align="center">Email</TableCell>
+              <TableCell align="center">Phone</TableCell>
+              <TableCell align="center">Role</TableCell>
+              <TableCell align="center">Nhà hàng</TableCell>
+              <TableCell align="center">Ngày tạo</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {paginatedData.map((user) => (
+              <TableRow key={user.userId}>
+                <TableCell align="center">
+                  <Tooltip title="Xoá người dùng">
+                    <IconButton
+                      onClick={() => {
+                        setSelectedUserId(user.userId);
+                        setOpenDialog(true);
+                      }}
+                      className={styles.deleteBtn}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </Tooltip>
+                </TableCell>
+                <TableCell>
+                  <Box className={styles.avatarCell}>
+                    <Avatar>{user.userName.charAt(0).toUpperCase()}</Avatar>
+                    <Typography className={styles.name}>
+                      {user.userName}
+                    </Typography>
+                  </Box>
+                </TableCell>
+                <TableCell align="center">{user.email}</TableCell>
+                <TableCell align="center">{user.phone}</TableCell>
+                <TableCell align="center">{user.role}</TableCell>
+                <TableCell align="center">
+                  {user.restaurants || "Chưa có"}
+                </TableCell>
+                <TableCell align="center">
+                  {moment(user.createdAt).format("DD/MM/YYYY")}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
+        <Pagination
+          count={pageCount}
+          page={currentPage}
+          onChange={handlePageChange}
+          color="primary"
+          shape="rounded"
+        />
+      </Box>
+
+      <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
+        <DialogTitle>Xác nhận xoá</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Bạn có chắc chắn muốn xoá người dùng này không?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenDialog(false)}>Huỷ</Button>
+          <Button onClick={handleDelete} color="error" variant="contained">
+            Xoá
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
   );
 };
 

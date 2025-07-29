@@ -16,7 +16,7 @@ const initialState: UserState = {
   error: null,
 };
 
-// ✅ Login
+// Login
 export const loginUser = createAsyncThunk(
   "user/loginUser",
   async (
@@ -50,7 +50,7 @@ export const loginUser = createAsyncThunk(
   }
 );
 
-// ✅ Get all users
+// Get all users
 export const fetchUsers = createAsyncThunk(
   "user/fetchUsers",
   async (_, { rejectWithValue }) => {
@@ -63,7 +63,7 @@ export const fetchUsers = createAsyncThunk(
   }
 );
 
-// ✅ Create user (không gán cứng role)
+// Create user (không gán cứng role)
 export const createUser = createAsyncThunk(
   "user/createUser",
   async (newUser: Omit<User, "id">, { rejectWithValue }) => {
@@ -82,7 +82,7 @@ export const createUser = createAsyncThunk(
   }
 );
 
-// ✅ Update user
+// Update user
 export const updateUser = createAsyncThunk(
   "user/updateUser",
   async (
@@ -98,7 +98,7 @@ export const updateUser = createAsyncThunk(
   }
 );
 
-// ✅ Delete user
+// Delete user
 export const deleteUser = createAsyncThunk(
   "user/deleteUser",
   async (id: number, { rejectWithValue }) => {
@@ -111,7 +111,7 @@ export const deleteUser = createAsyncThunk(
   }
 );
 
-// ✅ Slice
+// Slice
 const userSlice = createSlice({
   name: "user",
   initialState,
@@ -130,7 +130,7 @@ const userSlice = createSlice({
   extraReducers: (builder) => {
     builder
 
-      // 🔐 Login
+      // Login
       .addCase(loginUser.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -144,7 +144,7 @@ const userSlice = createSlice({
         state.error = action.payload as string;
       })
 
-      // 📥 Fetch users
+      // Fetch users
       .addCase(fetchUsers.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -158,7 +158,7 @@ const userSlice = createSlice({
         state.error = action.payload as string;
       })
 
-      // ➕ Create user
+      // Create user
       .addCase(createUser.fulfilled, (state, action) => {
         state.users.push(action.payload);
       })
@@ -166,7 +166,7 @@ const userSlice = createSlice({
         state.error = action.payload as string;
       })
 
-      // ✏️ Update user
+      // Update user
       .addCase(updateUser.fulfilled, (state, action) => {
         state.users = state.users.map((user) =>
           user.id === action.payload.id ? action.payload : user
@@ -176,7 +176,7 @@ const userSlice = createSlice({
         state.error = action.payload as string;
       })
 
-      // 🗑 Delete user
+      // Delete user
       .addCase(deleteUser.fulfilled, (state, action) => {
         state.users = state.users.filter((user) => user.id !== action.payload);
       })

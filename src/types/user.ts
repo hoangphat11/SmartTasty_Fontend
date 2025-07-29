@@ -5,6 +5,7 @@ export interface User {
   phone: string;
   address: string;
   role: string;
+  restaurants?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -18,5 +19,5 @@ export interface Restaurant {
   isActive: boolean;
   createdAt?: string;
   updatedAt?: string;
-  userId: number; // Người sở hữu nhà hàng (liên kết với User)
+  userId: number; // Người sở hữu nhà hàng 
 }
