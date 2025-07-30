@@ -49,7 +49,7 @@ const LoginPage = () => {
           router.push("/admin");
           break;
         case "business":
-          router.push("/restaurant");
+          router.push("/dashboard");
           break;
         default:
           router.push("/");

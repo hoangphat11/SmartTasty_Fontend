@@ -1,58 +1,109 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import styles from "./styles.module.scss";
-import PersonIcon from "@mui/icons-material/Person";
-import SpaceDashboardIcon from "@mui/icons-material/SpaceDashboard";
-import { Button } from "antd"; // ✅ import AntD Button
+import { useState, useEffect } from "react";
+import {
+  Box,
+  List,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Collapse,
+  Typography,
+  Paper,
+} from "@mui/material";
+import {
+  Person as PersonIcon,
+  SpaceDashboard as DashboardIcon,
+  ExpandLess,
+  ExpandMore,
+} from "@mui/icons-material";
 
-const Index = () => {
+const Sidebar = () => {
   const pathname = usePathname();
-  const router = useRouter(); // ✅ khai báo router
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (
+      pathname.startsWith("/products") ||
+      pathname.startsWith("/promotion") ||
+      pathname.startsWith("/restaurant")
+    ) {
+      setOpen(true);
+    }
+  }, [pathname]);
 
   return (
-    <div className={styles.sidebar}>
-      <div className={styles.logo}>Admin Restaurant</div>
-      <ul className={styles.menu}>
-        <li className={pathname === "/restaurant" ? styles.active : ""}>
-          <Link href="/restaurant">
-            <span className={styles.icon}>
-              <SpaceDashboardIcon />
-            </span>
-            Dashboard
-          </Link>
-        </li>
+    <Paper
+      elevation={2}
+      sx={{
+        width: 240,
+        height: "100vh",
+        p: 2,
+        borderRadius: 2,
+        bgcolor: "background.paper",
+      }}
+    >
+      <Typography variant="h6" fontWeight="bold" textAlign="center" mb={2}>
+        Admin Restaurant
+      </Typography>
 
-        <li
-          className={`${styles.hasSubmenu} ${
-            pathname.startsWith("/admin") ? styles.active : ""
-          }`}
+      <List component="nav">
+        <ListItemButton
+          component={Link}
+          href="/dashboard"
+          selected={pathname === "/dashboard"}
         >
-          <div className={styles.linkWithHover}>
-            <span className={styles.icon}>
-              <PersonIcon />
-            </span>
-            Management
-          </div>
-          <ul className={styles.submenu}>
-            <li>
-              <Link href="/products">Quản lý</Link>
-            </li>
-            <li>
-              <Link href="/promotion">Các Ưu Đãi</Link>
-            </li>
-            <li>
-              <Link href="/">Bàn đã đặt</Link>
-            </li>
-            <li>
-              <Link href="/informations">Thông Tin Nhà Hàng</Link>
-            </li>
-          </ul>
-        </li>
-      </ul>
-    </div>
+          <ListItemIcon>
+            <DashboardIcon />
+          </ListItemIcon>
+          <ListItemText primary="Dashboard" />
+        </ListItemButton>
+
+        <ListItemButton onClick={() => setOpen(!open)}>
+          <ListItemIcon>
+            <PersonIcon />
+          </ListItemIcon>
+          <ListItemText primary="Management" />
+          {open ? <ExpandLess /> : <ExpandMore />}
+        </ListItemButton>
+
+        <Collapse in={open} timeout="auto" unmountOnExit>
+          <List component="div" disablePadding sx={{ pl: 4 }}>
+            <ListItemButton
+              component={Link}
+              href="/restaurant"
+              selected={pathname === "/restaurant"}
+            >
+              <ListItemText primary="Thông Tin Nhà Hàng" />
+            </ListItemButton>
+            <ListItemButton
+              component={Link}
+              href="/products"
+              selected={pathname === "/products"}
+            >
+              <ListItemText primary="Quản lý" />
+            </ListItemButton>
+            <ListItemButton
+              component={Link}
+              href="/promotion"
+              selected={pathname === "/promotion"}
+            >
+              <ListItemText primary="Các Ưu Đãi" />
+            </ListItemButton>
+            <ListItemButton
+              component={Link}
+              href="/"
+              selected={pathname === "/"}
+            >
+              <ListItemText primary="Bàn đã đặt" />
+            </ListItemButton>
+          </List>
+        </Collapse>
+      </List>
+    </Paper>
   );
 };
 
-export default Index;
+export default Sidebar;

@@ -13,19 +13,43 @@ interface Restaurant {
   latitude: number;
   longitude: number;
   imageUrl: string;
+  ownerId: number; // thêm nếu chưa có
 }
 
 interface RestaurantState {
   restaurants: Restaurant[];
+  current: Restaurant | null; // ➕ thêm cho fetchByOwner
   loading: boolean;
   error: string | null;
 }
 
 const initialState: RestaurantState = {
   restaurants: [],
+  current: null,
   loading: false,
   error: null,
 };
+
+// ➕ FETCH BY OWNER (get 1 nhà hàng theo userId)
+export const fetchRestaurantByOwner = createAsyncThunk<
+  Restaurant | null,
+  { token: string; userId: number },
+  { rejectValue: string }
+>("restaurant/fetchByOwner", async ({ token, userId }, { rejectWithValue }) => {
+  try {
+    const response = await axiosInstance.get("/api/Restaurant", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    const owned = response.data?.data?.find(
+      (r: Restaurant) => r.ownerId === userId
+    );
+
+    return owned || null;
+  } catch (err: any) {
+    return rejectWithValue(err.response?.data?.message || "Lỗi không xác định");
+  }
+});
 
 // CREATE
 export const createRestaurant = createAsyncThunk<
@@ -60,7 +84,7 @@ export const fetchRestaurants = createAsyncThunk<
 >("restaurant/fetchAll", async (_, { rejectWithValue }) => {
   try {
     const res = await axiosInstance.get("/api/Restaurant");
-    return res.data;
+    return res.data.data;
   } catch (err: any) {
     return rejectWithValue(err.response?.data?.message || "Lỗi không xác định");
   }
@@ -108,9 +132,35 @@ export const deleteRestaurant = createAsyncThunk<
 const restaurantSlice = createSlice({
   name: "restaurant",
   initialState,
-  reducers: {},
+  reducers: {
+    clearCurrentRestaurant(state) {
+      state.current = null;
+    },
+  },
   extraReducers: (builder) => {
     builder
+      // ➕ FETCH BY OWNER
+      .addCase(fetchRestaurantByOwner.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.current = null;
+      })
+      .addCase(
+        fetchRestaurantByOwner.fulfilled,
+        (state, action: PayloadAction<Restaurant | null>) => {
+          state.loading = false;
+          state.current = action.payload;
+        }
+      )
+      .addCase(
+        fetchRestaurantByOwner.rejected,
+        (state, action: PayloadAction<string | undefined>) => {
+          state.loading = false;
+          state.error = action.payload || "Lỗi không xác định";
+          state.current = null;
+        }
+      )
+
       // CREATE
       .addCase(createRestaurant.pending, (state) => {
         state.loading = true;
@@ -187,4 +237,5 @@ const restaurantSlice = createSlice({
   },
 });
 
+export const { clearCurrentRestaurant } = restaurantSlice.actions;
 export default restaurantSlice.reducer;

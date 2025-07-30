@@ -9,42 +9,37 @@ import {
   Typography,
   Chip,
   CircularProgress,
+  TextField,
 } from "@mui/material";
-import axios from "axios";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import styles from "./styles.module.scss";
-
-interface Dish {
-  id: number;
-  name: string;
-  category: string;
-  price: number;
-  image: string;
-  isActive: boolean;
-  restaurant: {
-    id: number;
-    name: string;
-    address: string;
-  };
-  imageUrl?: string;
-}
-
-interface RestaurantInfo {
-  id: number;
-  name: string;
-  address: string;
-  imageUrl: string;
-}
+import { useAppDispatch, useAppSelector } from "@/redux/hook";
+import {
+  fetchRestaurantByOwner,
+  clearCurrentRestaurant,
+  updateRestaurant,
+} from "@/redux/slices/restaurantSlice";
+import { fetchDishes } from "@/redux/slices/dishSlide";
 
 const RestaurantPage = () => {
-  const [restaurantId, setRestaurantId] = useState<number | null>(null);
-  const [restaurantInfo, setRestaurantInfo] = useState<RestaurantInfo | null>(
-    null
-  );
-  const [dishes, setDishes] = useState<Dish[]>([]);
-  const [loading, setLoading] = useState(true);
+  const dispatch = useAppDispatch();
   const router = useRouter();
+
+  const { current: restaurantInfo, loading: restaurantLoading } =
+    useAppSelector((state) => state.restaurant);
+  const { items: dishes, loading: dishLoading } = useAppSelector(
+    (state) => state.dishes
+  );
+
+  const [isEditing, setIsEditing] = useState(false);
+
+  const [formState, setFormState] = useState({
+    name: "",
+    address: "",
+    openTime: "",
+    closeTime: "",
+  });
 
   useEffect(() => {
     const userData = JSON.parse(localStorage.getItem("user") || "{}");
@@ -57,52 +52,74 @@ const RestaurantPage = () => {
       return;
     }
 
-    axios
-      .get(`https://smarttasty-backend.onrender.com/api/Restaurant`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((res) => {
-        const ownedRestaurants = res.data?.data?.filter(
-          (r: any) => r.ownerId === userId
-        );
+    dispatch(fetchRestaurantByOwner({ token, userId }));
 
-        if (ownedRestaurants.length === 0) {
-          setRestaurantId(null);
-          setRestaurantInfo(null);
-        } else {
-          const restaurant = ownedRestaurants[0];
-          setRestaurantId(restaurant.id);
-          setRestaurantInfo({
-            id: restaurant.id,
-            name: restaurant.name,
-            address: restaurant.address,
-            imageUrl: restaurant.imageUrl,
-          });
-        }
-      })
-      .catch(() => toast.error("Không thể lấy thông tin nhà hàng."));
-  }, []);
+    return () => {
+      dispatch(clearCurrentRestaurant());
+    };
+  }, [dispatch]);
 
   useEffect(() => {
-    if (!restaurantId) return;
+    if (restaurantInfo?.id) {
+      dispatch(fetchDishes(restaurantInfo.id.toString()));
+      setFormState({
+        name: restaurantInfo.name,
+        address: restaurantInfo.address,
+        openTime: restaurantInfo.openTime,
+        closeTime: restaurantInfo.closeTime,
+      });
+    }
+  }, [restaurantInfo, dispatch]);
 
-    setLoading(true);
-    axios
-      .get(
-        `https://smarttasty-backend.onrender.com/api/Dishes/restaurant/${restaurantId}`
-      )
-      .then((res) => {
-        const enhancedDishes = (res.data || []).map((dish: Dish) => ({
-          ...dish,
-          imageUrl: `https://res.cloudinary.com/djcur1ymq/image/upload/${dish.image}`,
-        }));
-        setDishes(enhancedDishes);
-      })
-      .catch(() => toast.error("Không thể lấy danh sách món ăn."))
-      .finally(() => setLoading(false));
-  }, [restaurantId]);
+  const handleUpdate = async () => {
+    if (!restaurantInfo) return;
 
-  if (!restaurantId || !restaurantInfo) {
+    const userData = JSON.parse(localStorage.getItem("user") || "{}");
+    const token = userData?.token;
+
+    const formPayload = {
+      ...restaurantInfo,
+      name: formState.name,
+      address: formState.address,
+      openTime: formState.openTime,
+      closeTime: formState.closeTime,
+      file: new File([], ""), // giữ nguyên nếu không dùng ảnh
+    };
+
+    try {
+      await dispatch(
+        updateRestaurant({ id: restaurantInfo.id, data: formPayload })
+      ).unwrap();
+      toast.success("Cập nhật nhà hàng thành công!");
+      dispatch(
+        fetchRestaurantByOwner({ token, userId: restaurantInfo.ownerId })
+      );
+      setIsEditing(false);
+    } catch (err) {
+      toast.error("Cập nhật thất bại.");
+    }
+  };
+
+  const handleCancelEdit = () => {
+    if (!restaurantInfo) return;
+    setFormState({
+      name: restaurantInfo.name,
+      address: restaurantInfo.address,
+      openTime: restaurantInfo.openTime,
+      closeTime: restaurantInfo.closeTime,
+    });
+    setIsEditing(false);
+  };
+
+  if (restaurantLoading || (!restaurantInfo && !restaurantLoading)) {
+    return (
+      <Box display="flex" justifyContent="center" py={6}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (!restaurantInfo) {
     return (
       <Box className={styles.loginContainer}>
         <Paper elevation={3} className={styles.loginCard}>
@@ -136,10 +153,80 @@ const RestaurantPage = () => {
             />
           </Box>
           <Box className={styles.restaurantInfo}>
-            <Typography variant="h4">{restaurantInfo.name}</Typography>
-            <Typography>
-              <strong>Địa chỉ:</strong> {restaurantInfo.address}
-            </Typography>
+            {isEditing ? (
+              <>
+                <TextField
+                  fullWidth
+                  label="Tên nhà hàng"
+                  value={formState.name}
+                  onChange={(e) =>
+                    setFormState({ ...formState, name: e.target.value })
+                  }
+                  margin="normal"
+                />
+                <TextField
+                  fullWidth
+                  label="Địa chỉ"
+                  value={formState.address}
+                  onChange={(e) =>
+                    setFormState({ ...formState, address: e.target.value })
+                  }
+                  margin="normal"
+                />
+                <TextField
+                  fullWidth
+                  label="Giờ mở cửa"
+                  value={formState.openTime}
+                  onChange={(e) =>
+                    setFormState({ ...formState, openTime: e.target.value })
+                  }
+                  margin="normal"
+                />
+                <TextField
+                  fullWidth
+                  label="Giờ đóng cửa"
+                  value={formState.closeTime}
+                  onChange={(e) =>
+                    setFormState({ ...formState, closeTime: e.target.value })
+                  }
+                  margin="normal"
+                />
+                <Box display="flex" gap={2} mt={2}>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={handleUpdate}
+                  >
+                    Lưu thay đổi
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    color="secondary"
+                    onClick={handleCancelEdit}
+                  >
+                    Huỷ
+                  </Button>
+                </Box>
+              </>
+            ) : (
+              <>
+                <Typography variant="h4">{restaurantInfo.name}</Typography>
+                <Typography>
+                  <strong>Địa chỉ:</strong> {restaurantInfo.address}
+                </Typography>
+                <Typography>
+                  <strong>Giờ hoạt động:</strong> {restaurantInfo.openTime} -{" "}
+                  {restaurantInfo.closeTime}
+                </Typography>
+                <Button
+                  variant="outlined"
+                  onClick={() => setIsEditing(true)}
+                  sx={{ mt: 2 }}
+                >
+                  Sửa
+                </Button>
+              </>
+            )}
           </Box>
         </Box>
       </Paper>
@@ -149,7 +236,7 @@ const RestaurantPage = () => {
           Thực đơn
         </Typography>
 
-        {loading ? (
+        {dishLoading ? (
           <Box display="flex" justifyContent="center" py={4}>
             <CircularProgress />
           </Box>

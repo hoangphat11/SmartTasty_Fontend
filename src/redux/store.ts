@@ -3,13 +3,13 @@ import themeReducer from "./slices/useThemeSlice";
 import userReducer from "./slices/userSlice";
 import dishReducer from "./slices/dishSlide";
 import restaurantReducer from "./slices/restaurantSlice";
-import promotionReducer from "./slices/promotionSlice"
+import promotionReducer from "./slices/promotionSlice";
 
 export const store = configureStore({
   reducer: {
     theme: themeReducer,
     user: userReducer,
-    dishes: dishReducer,  
+    dishes: dishReducer,
     restaurant: restaurantReducer,
     promotion: promotionReducer,
   },

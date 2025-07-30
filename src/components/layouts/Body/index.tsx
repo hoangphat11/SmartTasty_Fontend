@@ -5,16 +5,19 @@ import {
   Box,
   Grid,
   Card,
-  CardMedia,
   CardContent,
   Typography,
   CircularProgress,
   Alert,
+  Chip,
 } from "@mui/material";
 import { useAppDispatch, useAppSelector } from "@/redux/hook";
 import { fetchRestaurants } from "@/redux/slices/restaurantSlice";
+import StarIcon from "@mui/icons-material/Star";
+import LabelIcon from "@mui/icons-material/Label";
+import styles from "./styles.module.scss";
 
-const HomePage = () => {
+const BodyPage = () => {
   const dispatch = useAppDispatch();
   const { restaurants, loading, error } = useAppSelector(
     (state) => state.restaurant
@@ -25,10 +28,8 @@ const HomePage = () => {
   }, [dispatch]);
 
   return (
-    <Box p={4}>
-      <Typography variant="h4" gutterBottom>
-        Danh sách nhà hàng
-      </Typography>
+    <Box p={2}>
+      <Typography variant="h5" fontWeight="bold" mb={2}></Typography>
 
       {loading && (
         <Box display="flex" justifyContent="center" mt={4}>
@@ -42,38 +43,57 @@ const HomePage = () => {
         </Alert>
       )}
 
-      <Grid container spacing={3}>
-        {Array.isArray(restaurants) && restaurants.length > 0
-          ? restaurants.map((restaurant) => (
-              <Grid item xs={12} sm={6} md={4} key={restaurant.id}>
-                <Card
-                  sx={{
-                    cursor: "pointer",
-                    transition: "0.3s",
-                    "&:hover": { boxShadow: 6 },
-                  }}
+      {!loading && restaurants.length === 0 && (
+        <Typography>Không có nhà hàng nào.</Typography>
+      )}
+
+      <Grid container spacing={2}>
+        {restaurants.map((restaurant) => (
+          <Grid item xs={12} sm={6} md={4} lg={2} key={restaurant.id}>
+            <Card className={styles.card}>
+              <img
+                src={restaurant.imageUrl}
+                alt={restaurant.name}
+                className={styles.image}
+              />
+              <CardContent className={styles.content}>
+                <Box display="flex" alignItems="center" gap={0.5}>
+                  <StarIcon fontSize="small" color="warning" />
+                  <Typography
+                    variant="subtitle2"
+                    fontWeight="bold"
+                    noWrap
+                    title={restaurant.name}
+                  >
+                    {restaurant.name}
+                  </Typography>
+                </Box>
+
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  noWrap
+                  title={restaurant.address}
                 >
-                  <CardMedia
-                    component="img"
-                    height="200"
-                    image={restaurant.imageUrl}
-                    alt={restaurant.name}
+                  {restaurant.address}
+                </Typography>
+
+                <Box mt={1}>
+                  <Chip
+                    icon={<LabelIcon fontSize="small" />}
+                    label={restaurant.category}
+                    size="small"
+                    variant="outlined"
+                    color="error"
                   />
-                  <CardContent>
-                    <Typography variant="h6" noWrap>
-                      {restaurant.name}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" noWrap>
-                      {restaurant.address}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))
-          : !loading && <Typography>Không có nhà hàng nào.</Typography>}
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+        ))}
       </Grid>
     </Box>
   );
 };
 
-export default HomePage;
+export default BodyPage;

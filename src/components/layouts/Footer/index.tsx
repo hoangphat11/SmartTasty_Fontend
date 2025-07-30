@@ -70,8 +70,6 @@ const Footer = () => {
           </div>
         </div>
 
-
-
         {/* Giờ mở cửa */}
         <div className={styles.areaRight}>
           <div className={styles.blockTitle}>

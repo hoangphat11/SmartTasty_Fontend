@@ -63,6 +63,11 @@ const ProductPage = () => {
     isActive: true,
   });
   const [file, setFile] = useState<File | null>(null);
+  const [discounts, setDiscounts] = useState<{ [key: string]: number }>({});
+  const [openDiscountInput, setOpenDiscountInput] = useState<string | null>(
+    null
+  );
+  const [discountInputValue, setDiscountInputValue] = useState("");
 
   useEffect(() => {
     const { token, user } = getUserFromLocalStorage();
@@ -172,6 +177,7 @@ const ProductPage = () => {
                     <TableCell>Danh mục</TableCell>
                     <TableCell>Trạng thái</TableCell>
                     <TableCell>Hình ảnh</TableCell>
+                    <TableCell>Giảm giá</TableCell>
                     <TableCell>Hành động</TableCell>
                   </TableRow>
                 </TableHead>
@@ -180,7 +186,31 @@ const ProductPage = () => {
                     <TableRow key={dish.id}>
                       <TableCell>{dish.name}</TableCell>
                       <TableCell>
-                        {parseInt(dish.price.toString()).toLocaleString()}đ
+                        {discounts[dish.id] ? (
+                          <>
+                            <Typography
+                              variant="body2"
+                              sx={{ textDecoration: "line-through" }}
+                            >
+                              {parseInt(dish.price.toString()).toLocaleString()}
+                              đ
+                            </Typography>
+                            <Typography color="error" fontWeight={600}>
+                              {(
+                                parseInt(dish.price.toString()) *
+                                (1 - discounts[dish.id] / 100)
+                              ).toLocaleString()}
+                              đ
+                            </Typography>
+                            <Typography variant="caption" color="primary">
+                              -{discounts[dish.id]}%
+                            </Typography>
+                          </>
+                        ) : (
+                          <Typography>
+                            {parseInt(dish.price.toString()).toLocaleString()}đ
+                          </Typography>
+                        )}
                       </TableCell>
                       <TableCell>{dish.category}</TableCell>
                       <TableCell>
@@ -202,6 +232,63 @@ const ProductPage = () => {
                           />
                         ) : (
                           <Typography>Không có ảnh</Typography>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {openDiscountInput === dish.id ? (
+                          <Box display="flex" gap={1} alignItems="center">
+                            <TextField
+                              size="small"
+                              type="number"
+                              label="% giảm"
+                              value={discountInputValue}
+                              onChange={(e) =>
+                                setDiscountInputValue(e.target.value)
+                              }
+                              InputProps={{ inputProps: { min: 0, max: 100 } }}
+                              style={{ width: 100 }}
+                            />
+                            <Button
+                              variant="outlined"
+                              size="small"
+                              onClick={() => {
+                                const value = parseFloat(discountInputValue);
+                                if (isNaN(value) || value < 0 || value > 100) {
+                                  alert("Vui lòng nhập giá trị từ 0 đến 100");
+                                  return;
+                                }
+                                setDiscounts({
+                                  ...discounts,
+                                  [dish.id]: value,
+                                });
+                                setOpenDiscountInput(null);
+                                setDiscountInputValue("");
+                              }}
+                            >
+                              Áp dụng
+                            </Button>
+                          </Box>
+                        ) : discounts[dish.id] ? (
+                          <Button
+                            variant="text"
+                            size="small"
+                            color="error"
+                            onClick={() => {
+                              const newDiscounts = { ...discounts };
+                              delete newDiscounts[dish.id];
+                              setDiscounts(newDiscounts);
+                            }}
+                          >
+                            Hủy voucher
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="text"
+                            size="small"
+                            onClick={() => setOpenDiscountInput(dish.id)}
+                          >
+                            Thêm voucher
+                          </Button>
                         )}
                       </TableCell>
                       <TableCell>

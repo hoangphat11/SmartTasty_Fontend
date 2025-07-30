@@ -28,7 +28,13 @@ import {
   Edit as EditIcon,
   Delete as DeleteIcon,
 } from "@mui/icons-material";
-import axios from "axios";
+import { useAppDispatch, useAppSelector } from "@/redux/hook";
+import {
+  fetchPromotions,
+  addPromotion,
+  updatePromotion,
+  deletePromotion,
+} from "@/redux/slices/promotionSlice";
 
 const getUserFromLocalStorage = () => {
   try {
@@ -39,9 +45,10 @@ const getUserFromLocalStorage = () => {
 };
 
 const PromotionPage = () => {
+  const dispatch = useAppDispatch();
+  const { promotions, loading } = useAppSelector((state) => state.promotion);
+
   const [restaurantId, setRestaurantId] = useState<string | null>(null);
-  const [promotions, setPromotions] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<any | null>(null);
   const [formData, setFormData] = useState({
@@ -58,40 +65,24 @@ const PromotionPage = () => {
       if (!token || !userId) return;
 
       try {
-        const res = await axios.get(
+        const res = await fetch(
           "https://smarttasty-backend.onrender.com/api/Restaurant",
           {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
-        const myRestaurant = res.data.data.find(
-          (r: any) => r.ownerId === userId
-        );
+        const data = await res.json();
+        const myRestaurant = data?.data?.find((r: any) => r.ownerId === userId);
         if (!myRestaurant?.id) return alert("Tài khoản chưa có nhà hàng!");
         setRestaurantId(myRestaurant.id);
-        fetchPromotions(myRestaurant.id);
+        dispatch(fetchPromotions(myRestaurant.id));
       } catch {
         alert("Không thể lấy thông tin nhà hàng");
-      } finally {
-        setLoading(false);
       }
     };
 
     fetchRestaurant();
-  }, []);
-
-  const fetchPromotions = async (resId: string) => {
-    const { token } = getUserFromLocalStorage();
-    try {
-      const res = await axios.get(
-        `https://smarttasty-backend.onrender.com/api/Promotions/restaurant/${resId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setPromotions(res.data || []);
-    } catch {
-      alert("Không thể lấy danh sách khuyến mãi");
-    }
-  };
+  }, [dispatch]);
 
   const handleOpenModal = (promo: any = null) => {
     if (promo) {
@@ -110,29 +101,19 @@ const PromotionPage = () => {
   };
 
   const handleSubmit = async () => {
-    const { token } = getUserFromLocalStorage();
-    if (!token || !restaurantId) return;
+    if (!restaurantId) return;
     const payload = { ...formData, restaurantId };
 
     try {
       if (editing) {
-        await axios.put(
-          `https://smarttasty-backend.onrender.com/api/Promotions/${editing.id}`,
-          payload,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        await dispatch(
+          updatePromotion({ id: editing.id, data: payload })
+        ).unwrap();
         alert("Cập nhật thành công");
       } else {
-        await axios.post(
-          "https://smarttasty-backend.onrender.com/api/Promotions",
-          payload,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+        await dispatch(addPromotion(payload)).unwrap();
         alert("Tạo thành công");
       }
-      fetchPromotions(restaurantId);
       setOpen(false);
     } catch {
       alert("Thao tác thất bại");
@@ -140,17 +121,10 @@ const PromotionPage = () => {
   };
 
   const handleDelete = async (id: number) => {
-    const { token } = getUserFromLocalStorage();
     if (!window.confirm("Bạn chắc chắn muốn xóa?")) return;
     try {
-      await axios.delete(
-        `https://smarttasty-backend.onrender.com/api/Promotions/${id}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      await dispatch(deletePromotion(id)).unwrap();
       alert("Đã xóa thành công");
-      if (restaurantId) fetchPromotions(restaurantId);
     } catch {
       alert("Không thể xóa");
     }

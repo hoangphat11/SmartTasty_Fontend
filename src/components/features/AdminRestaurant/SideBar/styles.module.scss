@@ -1,20 +1,19 @@
 .sidebar {
   width: 250px;
-  height: 100vh;
-  background-color: #ffffff;
-  padding: 24px 16px;
+  min-height: 100vh;
+  //background-color: #ffffff; // nền trắng
+  color: #000000; // chữ đen
   display: flex;
   flex-direction: column;
-  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
-  border-right: 1px solid #e5e7eb;
-  font-family: 'Segoe UI', sans-serif;
+  padding: 1.5rem 1rem;
+  border-right: 1px solid #e5e7eb; // đường viền phân cách nhẹ
 
   .logo {
-    font-size: 22px;
-    font-weight: 700;
-    margin-bottom: 32px;
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 2rem;
     text-align: center;
-    color: #1e293b;
+    color: #111827; // đen đậm hơn
   }
 
   .menu {
@@ -23,70 +22,71 @@
     margin: 0;
 
     li {
-      margin-bottom: 8px;
-      border-radius: 6px;
-      transition: background-color 0.3s, color 0.3s;
-      overflow: hidden;
+      margin-bottom: 1rem;
 
       a,
       .linkWithHover {
         display: flex;
         align-items: center;
-        gap: 12px;
-        padding: 10px 14px;
-        color: #334155;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
         text-decoration: none;
-        font-weight: 500;
-        border-radius: 6px;
-        transition: all 0.3s ease;
-
-        svg {
-          font-size: 20px;
-        }
+        color: #374151; // xám đậm
+        border-radius: 8px;
+        transition: all 0.2s ease;
 
         &:hover {
-          background-color: #f1f5f9;
-          color: #1e293b;
+          background-color: #f3f4f6; // xám nhạt khi hover
+          color: #111827;
         }
       }
 
       &.active a,
       &.active .linkWithHover {
-        background-color: #e0f2fe;
-        color: #0284c7;
-        font-weight: 600;
+        background-color: #2563eb;
+        color: #ffffff;
+
+        svg {
+          color: #ffffff; // icon trắng khi active
+        }
       }
 
-      &.hasSubmenu {
-        .submenu {
-          list-style: none;
-          padding-left: 28px;
-          margin-top: 6px;
-          display: none;
+      .submenu {
+        list-style: none;
+        padding-left: 1.5rem;
+        margin-top: 0.5rem;
 
-          li {
-            margin-bottom: 6px;
+        li {
+          margin-bottom: 0.5rem;
 
-            a {
-              display: block;
-              padding: 6px 10px;
-              font-size: 14px;
-              color: #64748b;
-              border-radius: 4px;
-              transition: background-color 0.2s;
+          a {
+            font-size: 0.9rem;
+            padding: 0.5rem 0.75rem;
+            display: block;
+            color: #6b7280; // xám nhẹ
 
-              &:hover {
-                background-color: #f0f9ff;
-                color: #0ea5e9;
-              }
+            &:hover {
+              color: #111827;
+              text-decoration: underline;
+              background-color: #f9fafb;
+              border-radius: 6px;
             }
           }
         }
-
-        &:hover .submenu {
-          display: block;
-        }
       }
+    }
+  }
+
+  .icon {
+    display: flex;
+    align-items: center;
+    font-size: 1.2rem;
+    color: inherit;
+  }
+
+  .hasSubmenu {
+    .linkWithHover {
+      cursor: pointer;
     }
   }
 }

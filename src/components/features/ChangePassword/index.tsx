@@ -1,27 +1,48 @@
 "use client";
 
-import { Form, Input, Button, Card, Typography } from "antd";
 import { useState } from "react";
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  TextField,
+  Button,
+  CircularProgress,
+} from "@mui/material";
 import { useRouter } from "next/navigation";
 import axiosInstance from "@/lib/axios/axiosInstance";
-import styles from "./styles.module.scss";
 import { toast } from "react-toastify";
-
-const { Title } = Typography;
+import styles from "./styles.module.scss";
 
 const ChangePasswordPage = () => {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const [formValues, setFormValues] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmNewPassword: "",
+  });
 
-  const handleChangePassword = async (values: {
-    currentPassword: string;
-    newPassword: string;
-    confirmNewPassword: string;
-  }) => {
-    const { currentPassword, newPassword, confirmNewPassword } = values;
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormValues({ ...formValues, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const { currentPassword, newPassword, confirmNewPassword } = formValues;
 
     if (newPassword !== confirmNewPassword) {
       toast.error("Mật khẩu mới và xác nhận không khớp!");
+      return;
+    }
+
+    if (
+      !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{6,}$/.test(newPassword)
+    ) {
+      toast.error(
+        "Mật khẩu phải chứa chữ hoa, chữ thường, số, ký tự đặc biệt và dài hơn 5 ký tự."
+      );
       return;
     }
 
@@ -43,7 +64,7 @@ const ChangePasswordPage = () => {
         toast.error(errMessage || "Đổi mật khẩu thất bại!");
       }
     } catch (error: any) {
-      toast.error(error?.errMessage || " lỗi .");
+      toast.error("Đổi mật khẩu thất bại!");
       console.error("Change password error:", error);
     } finally {
       setLoading(false);
@@ -51,72 +72,58 @@ const ChangePasswordPage = () => {
   };
 
   return (
-    <div className={styles.loginContainer}>
+    <Box className={styles.loginContainer}>
       <Card className={styles.loginCard}>
-        <Title level={2} style={{ textAlign: "center" }}>
-          Đổi mật khẩu
-        </Title>
-        <Form layout="vertical" onFinish={handleChangePassword}>
-          <Form.Item
-            label="Mật khẩu hiện tại"
-            name="currentPassword"
-            rules={[
-              { required: true, message: "Vui lòng nhập mật khẩu hiện tại!" },
-            ]}
-          >
-            <Input.Password placeholder="Nhập mật khẩu hiện tại" />
-          </Form.Item>
+        <CardContent>
+          <Typography variant="h4" textAlign="center" gutterBottom>
+            Đổi mật khẩu
+          </Typography>
+          <Box component="form" onSubmit={handleSubmit}>
+            <TextField
+              label="Mật khẩu hiện tại"
+              name="currentPassword"
+              type="password"
+              fullWidth
+              margin="normal"
+              required
+              value={formValues.currentPassword}
+              onChange={handleChange}
+            />
+            <TextField
+              label="Mật khẩu mới"
+              name="newPassword"
+              type="password"
+              fullWidth
+              margin="normal"
+              required
+              value={formValues.newPassword}
+              onChange={handleChange}
+            />
+            <TextField
+              label="Xác nhận mật khẩu mới"
+              name="confirmNewPassword"
+              type="password"
+              fullWidth
+              margin="normal"
+              required
+              value={formValues.confirmNewPassword}
+              onChange={handleChange}
+            />
 
-          <Form.Item
-            label="Mật khẩu mới"
-            name="newPassword"
-            rules={[
-              { required: true, message: "Vui lòng nhập mật khẩu!" },
-              {
-                pattern:
-                  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{6,}$/,
-                message:
-                  "Mật khẩu phải chứa chữ hoa, chữ thường, số, ký tự đặc biệt và dài hơn 5 ký tự.",
-              },
-            ]}
-          >
-            <Input.Password placeholder="Nhập mật khẩu mới" />
-          </Form.Item>
-
-          <Form.Item
-            label="Xác nhận mật khẩu mới"
-            name="confirmNewPassword"
-            dependencies={["newPassword"]}
-            rules={[
-              { required: true, message: "Vui lòng xác nhận mật khẩu mới!" },
-              {
-                pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{6,}$/,
-                message:
-                  "Mật khẩu phải chứa chữ hoa, chữ thường, số, ký tự đặc biệt và dài hơn 5 ký tự.",
-              },
-              ({ getFieldValue }) => ({
-                validator(_, value) {
-                  if (!value || getFieldValue("newPassword") === value) {
-                    return Promise.resolve();
-                  }
-                  return Promise.reject(
-                    new Error("Mật khẩu xác nhận không khớp!")
-                  );
-                },
-              }),
-            ]}
-          >
-            <Input.Password placeholder="Xác nhận mật khẩu mới" />
-          </Form.Item>
-
-          <Form.Item>
-            <Button type="primary" htmlType="submit" loading={loading} block>
-              Đổi mật khẩu
+            <Button
+              type="submit"
+              variant="contained"
+              color="primary"
+              fullWidth
+              disabled={loading}
+              sx={{ marginTop: 2 }}
+            >
+              {loading ? <CircularProgress size={24} /> : "Đổi mật khẩu"}
             </Button>
-          </Form.Item>
-        </Form>
+          </Box>
+        </CardContent>
       </Card>
-    </div>
+    </Box>
   );
 };
 
