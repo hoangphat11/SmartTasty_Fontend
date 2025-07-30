@@ -24,12 +24,12 @@ import {
   TableRow,
   Paper,
   IconButton,
+  Pagination,
 } from "@mui/material";
 import {
   Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
-  UploadFile as UploadIcon,
 } from "@mui/icons-material";
 import { useAppDispatch, useAppSelector } from "@/redux/hook";
 import {
@@ -39,6 +39,7 @@ import {
   deleteDish,
 } from "@/redux/slices/dishSlide";
 import { Dish } from "@/types/dish";
+import styles from "./styles.module.scss";
 
 const getUserFromLocalStorage = () => {
   try {
@@ -68,13 +69,28 @@ const ProductPage = () => {
     null
   );
   const [discountInputValue, setDiscountInputValue] = useState("");
+  const [searchKeyword, setSearchKeyword] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const itemsPerPage = 6;
+  const totalPages = Math.ceil(
+    dishes.filter((dish) => {
+      const matchKeyword = dish.name
+        .toLowerCase()
+        .includes(searchKeyword.toLowerCase());
+      const matchCategory =
+        selectedCategory === "All" || dish.category === selectedCategory;
+      return matchKeyword && matchCategory;
+    }).length / itemsPerPage
+  );
 
   useEffect(() => {
     const { token, user } = getUserFromLocalStorage();
     const userId = user?.userId;
     if (!token || !userId) return;
 
-    fetch(`${"https://smarttasty-backend.onrender.com/api"}/Restaurant`, {
+    fetch(`https://smarttasty-backend.onrender.com/api/Restaurant`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
@@ -145,172 +161,225 @@ const ProductPage = () => {
     }
   };
 
+  const filteredDishes = dishes.filter((dish) => {
+    const matchKeyword = dish.name
+      .toLowerCase()
+      .includes(searchKeyword.toLowerCase());
+    const matchCategory =
+      selectedCategory === "All" || dish.category === selectedCategory;
+    return matchKeyword && matchCategory;
+  });
+
+  const paginatedDishes = filteredDishes.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
   return (
-    <Box p={3}>
-      <Card>
+    <Box className={styles.productPage}>
+      <Card className={styles.card}>
         <CardContent>
-          <Box
-            display="flex"
-            justifyContent="space-between"
-            alignItems="center"
-            mb={2}
-          >
+          <Box className={styles.header}>
             <Typography variant="h6">Quản lý món ăn</Typography>
             <Button
               variant="contained"
               startIcon={<AddIcon />}
               onClick={() => handleOpenModal()}
+              className={styles.addBtn}
             >
               Thêm món
             </Button>
           </Box>
 
+          <Box className={styles.filter}>
+            <TextField
+              label="Tìm kiếm món ăn"
+              variant="outlined"
+              size="small"
+              value={searchKeyword}
+              onChange={(e) => setSearchKeyword(e.target.value)}
+              className={styles.searchInput}
+            />
+            <TextField
+              label="Danh mục"
+              select
+              size="small"
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className={styles.categorySelect}
+            >
+              <MenuItem value="All">Tất cả</MenuItem>
+              <MenuItem value="ThucAn">Thức ăn</MenuItem>
+              <MenuItem value="NuocUong">Nước uống</MenuItem>
+              <MenuItem value="ThucAnThem">Thức ăn thêm</MenuItem>
+            </TextField>
+          </Box>
+
           {loading ? (
             <CircularProgress />
           ) : (
-            <TableContainer component={Paper}>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Tên món</TableCell>
-                    <TableCell>Giá</TableCell>
-                    <TableCell>Danh mục</TableCell>
-                    <TableCell>Trạng thái</TableCell>
-                    <TableCell>Hình ảnh</TableCell>
-                    <TableCell>Giảm giá</TableCell>
-                    <TableCell>Hành động</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {dishes.map((dish) => (
-                    <TableRow key={dish.id}>
-                      <TableCell>{dish.name}</TableCell>
-                      <TableCell>
-                        {discounts[dish.id] ? (
-                          <>
-                            <Typography
-                              variant="body2"
-                              sx={{ textDecoration: "line-through" }}
-                            >
+            <>
+              <TableContainer component={Paper} className={styles.table}>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Tên món</TableCell>
+                      <TableCell>Giá</TableCell>
+                      <TableCell>Danh mục</TableCell>
+                      <TableCell>Trạng thái</TableCell>
+                      <TableCell>Hình ảnh</TableCell>
+                      <TableCell>Giảm giá</TableCell>
+                      <TableCell>Hành động</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {paginatedDishes.map((dish) => (
+                      <TableRow key={dish.id}>
+                        <TableCell>{dish.name}</TableCell>
+                        <TableCell>
+                          {discounts[dish.id] ? (
+                            <>
+                              <Typography
+                                variant="body2"
+                                className={styles.oldPrice}
+                              >
+                                {parseInt(
+                                  dish.price.toString()
+                                ).toLocaleString()}
+                                đ
+                              </Typography>
+                              <Typography className={styles.discountedPrice}>
+                                {(
+                                  parseInt(dish.price.toString()) *
+                                  (1 - discounts[dish.id] / 100)
+                                ).toLocaleString()}
+                                đ
+                              </Typography>
+                              <Typography className={styles.discountLabel}>
+                                -{discounts[dish.id]}%
+                              </Typography>
+                            </>
+                          ) : (
+                            <Typography>
                               {parseInt(dish.price.toString()).toLocaleString()}
                               đ
                             </Typography>
-                            <Typography color="error" fontWeight={600}>
-                              {(
-                                parseInt(dish.price.toString()) *
-                                (1 - discounts[dish.id] / 100)
-                              ).toLocaleString()}
-                              đ
-                            </Typography>
-                            <Typography variant="caption" color="primary">
-                              -{discounts[dish.id]}%
-                            </Typography>
-                          </>
-                        ) : (
-                          <Typography>
-                            {parseInt(dish.price.toString()).toLocaleString()}đ
+                          )}
+                        </TableCell>
+                        <TableCell>{dish.category}</TableCell>
+                        <TableCell>
+                          <Typography
+                            className={
+                              dish.isActive
+                                ? styles.statusActive
+                                : styles.statusInactive
+                            }
+                          >
+                            {dish.isActive ? "Đang bán" : "Ngưng"}
                           </Typography>
-                        )}
-                      </TableCell>
-                      <TableCell>{dish.category}</TableCell>
-                      <TableCell>
-                        <Typography color={dish.isActive ? "green" : "red"}>
-                          {dish.isActive ? "Đang bán" : "Ngưng"}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        {dish.imageUrl ? (
-                          <img
-                            src={dish.imageUrl}
-                            alt="dish"
-                            style={{
-                              width: 60,
-                              height: 60,
-                              borderRadius: 6,
-                              objectFit: "cover",
-                            }}
-                          />
-                        ) : (
-                          <Typography>Không có ảnh</Typography>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {openDiscountInput === dish.id ? (
-                          <Box display="flex" gap={1} alignItems="center">
-                            <TextField
-                              size="small"
-                              type="number"
-                              label="% giảm"
-                              value={discountInputValue}
-                              onChange={(e) =>
-                                setDiscountInputValue(e.target.value)
-                              }
-                              InputProps={{ inputProps: { min: 0, max: 100 } }}
-                              style={{ width: 100 }}
+                        </TableCell>
+                        <TableCell>
+                          {dish.imageUrl ? (
+                            <img
+                              src={dish.imageUrl}
+                              alt="dish"
+                              className={styles.dishImage}
                             />
-                            <Button
-                              variant="outlined"
-                              size="small"
-                              onClick={() => {
-                                const value = parseFloat(discountInputValue);
-                                if (isNaN(value) || value < 0 || value > 100) {
-                                  alert("Vui lòng nhập giá trị từ 0 đến 100");
-                                  return;
+                          ) : (
+                            <Typography>Không có ảnh</Typography>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {openDiscountInput === dish.id ? (
+                            <Box className={styles.voucherBox}>
+                              <TextField
+                                size="small"
+                                type="number"
+                                label="% giảm"
+                                value={discountInputValue}
+                                onChange={(e) =>
+                                  setDiscountInputValue(e.target.value)
                                 }
-                                setDiscounts({
-                                  ...discounts,
-                                  [dish.id]: value,
-                                });
-                                setOpenDiscountInput(null);
-                                setDiscountInputValue("");
+                                InputProps={{
+                                  inputProps: { min: 0, max: 100 },
+                                }}
+                                className={styles.voucherInput}
+                              />
+                              <Button
+                                variant="outlined"
+                                size="small"
+                                onClick={() => {
+                                  const value = parseFloat(discountInputValue);
+                                  if (
+                                    isNaN(value) ||
+                                    value < 0 ||
+                                    value > 100
+                                  ) {
+                                    alert("Vui lòng nhập giá trị từ 0 đến 100");
+                                    return;
+                                  }
+                                  setDiscounts({
+                                    ...discounts,
+                                    [dish.id]: value,
+                                  });
+                                  setOpenDiscountInput(null);
+                                  setDiscountInputValue("");
+                                }}
+                              >
+                                Áp dụng
+                              </Button>
+                            </Box>
+                          ) : discounts[dish.id] ? (
+                            <Button
+                              variant="text"
+                              size="small"
+                              color="error"
+                              onClick={() => {
+                                const newDiscounts = { ...discounts };
+                                delete newDiscounts[dish.id];
+                                setDiscounts(newDiscounts);
                               }}
                             >
-                              Áp dụng
+                              Hủy voucher
                             </Button>
-                          </Box>
-                        ) : discounts[dish.id] ? (
-                          <Button
-                            variant="text"
-                            size="small"
+                          ) : (
+                            <Button
+                              variant="text"
+                              size="small"
+                              onClick={() => setOpenDiscountInput(dish.id)}
+                            >
+                              Thêm voucher
+                            </Button>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <IconButton onClick={() => handleOpenModal(dish)}>
+                            <EditIcon />
+                          </IconButton>
+                          <IconButton
                             color="error"
-                            onClick={() => {
-                              const newDiscounts = { ...discounts };
-                              delete newDiscounts[dish.id];
-                              setDiscounts(newDiscounts);
-                            }}
+                            onClick={() => handleDelete(dish.id)}
                           >
-                            Hủy voucher
-                          </Button>
-                        ) : (
-                          <Button
-                            variant="text"
-                            size="small"
-                            onClick={() => setOpenDiscountInput(dish.id)}
-                          >
-                            Thêm voucher
-                          </Button>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <IconButton onClick={() => handleOpenModal(dish)}>
-                          <EditIcon />
-                        </IconButton>
-                        <IconButton
-                          color="error"
-                          onClick={() => handleDelete(dish.id)}
-                        >
-                          <DeleteIcon />
-                        </IconButton>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
+                            <DeleteIcon />
+                          </IconButton>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+              <Box display="flex" justifyContent="center" mt={2}>
+                <Pagination
+                  count={totalPages}
+                  page={currentPage}
+                  onChange={(_, page) => setCurrentPage(page)}
+                  color="primary"
+                />
+              </Box>
+            </>
           )}
         </CardContent>
       </Card>
-
       <Dialog
         open={open}
         onClose={() => setOpen(false)}
@@ -368,7 +437,7 @@ const ProductPage = () => {
             </Grid>
             <Grid item xs={12}>
               <Box display="flex" alignItems="center">
-                <Typography>Kinh doanh</Typography>
+                <Typography mr={1}>Kinh doanh</Typography>
                 <Switch
                   checked={formData.isActive}
                   onChange={(e) =>
@@ -378,11 +447,7 @@ const ProductPage = () => {
               </Box>
             </Grid>
             <Grid item xs={12}>
-              <Button
-                startIcon={<UploadIcon />}
-                component="label"
-                variant="outlined"
-              >
+              <Button variant="outlined" component="label">
                 {file ? file.name : "Chọn ảnh"}
                 <input
                   type="file"
