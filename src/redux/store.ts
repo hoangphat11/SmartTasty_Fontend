@@ -4,6 +4,7 @@ import userReducer from "./slices/userSlice";
 import dishReducer from "./slices/dishSlide";
 import restaurantReducer from "./slices/restaurantSlice";
 import promotionReducer from "./slices/promotionSlice";
+import dishpromotionReducer from "./slices/dishPromotionSlice";
 
 export const store = configureStore({
   reducer: {
@@ -12,6 +13,7 @@ export const store = configureStore({
     dishes: dishReducer,
     restaurant: restaurantReducer,
     promotion: promotionReducer,
+    dishpromotion: dishpromotionReducer,
   },
 });
 

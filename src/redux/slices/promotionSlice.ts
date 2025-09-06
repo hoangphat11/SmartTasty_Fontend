@@ -1,4 +1,3 @@
-// File: features/promotion/promotionSlice.ts
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axiosInstance from "@/lib/axios/axiosInstance";
 import { Promotion } from "@/types/promotion";

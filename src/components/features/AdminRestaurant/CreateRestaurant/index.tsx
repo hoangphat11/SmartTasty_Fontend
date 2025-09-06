@@ -104,7 +104,11 @@ const RestaurantCreatePage = () => {
       file,
     };
 
-    const resultAction = await dispatch(createRestaurant(restaurantData));
+    const token = localStorage.getItem("token") || "";
+
+    const resultAction = await dispatch(
+      createRestaurant({ token, data: restaurantData })
+    );
     if (createRestaurant.fulfilled.match(resultAction)) {
       toast.success("Tạo nhà hàng thành công!");
       router.push("/restaurant");

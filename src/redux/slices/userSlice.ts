@@ -28,13 +28,21 @@ export const loginUser = createAsyncThunk(
       const { errMessage, data: resData } = response.data;
 
       if (errMessage === "OK" && resData?.user && resData?.token) {
+        // lưu token vào cookie
         document.cookie = `token=${resData.token}; path=/; max-age=86400`;
 
+        // ✅ luôn lưu user và token để duy trì trạng thái đăng nhập
+        localStorage.setItem("user", JSON.stringify(resData.user));
+        localStorage.setItem("token", resData.token);
+
+        // ✅ chỉ lưu thông tin login (email, password) khi user tick "remember"
         if (data.remember) {
-          localStorage.setItem("user", JSON.stringify(resData));
           localStorage.setItem(
             "rememberedLogin",
-            JSON.stringify({ email: data.email, userPassword: data.userPassword })
+            JSON.stringify({
+              email: data.email,
+              userPassword: data.userPassword,
+            })
           );
         } else {
           localStorage.removeItem("rememberedLogin");
@@ -45,7 +53,9 @@ export const loginUser = createAsyncThunk(
         return rejectWithValue("Email hoặc mật khẩu không chính xác!");
       }
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.errMessage || "Lỗi đăng nhập");
+      return rejectWithValue(
+        error.response?.data?.errMessage || "Lỗi đăng nhập"
+      );
     }
   }
 );
@@ -58,7 +68,9 @@ export const fetchUsers = createAsyncThunk(
       const res = await axiosInstance.get("/api/User");
       return res.data.data as User[];
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.errMessage || "Lỗi lấy danh sách người dùng");
+      return rejectWithValue(
+        error.response?.data?.errMessage || "Lỗi lấy danh sách người dùng"
+      );
     }
   }
 );
@@ -77,7 +89,9 @@ export const createUser = createAsyncThunk(
         return rejectWithValue(errMessage || "Tạo tài khoản thất bại");
       }
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.errMessage || "Lỗi tạo người dùng");
+      return rejectWithValue(
+        error.response?.data?.errMessage || "Lỗi tạo người dùng"
+      );
     }
   }
 );
@@ -93,7 +107,9 @@ export const updateUser = createAsyncThunk(
       const res = await axiosInstance.put(`/api/User/${id}`, updatedData);
       return res.data.data as User;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.errMessage || "Lỗi cập nhật người dùng");
+      return rejectWithValue(
+        error.response?.data?.errMessage || "Lỗi cập nhật người dùng"
+      );
     }
   }
 );
@@ -106,7 +122,9 @@ export const deleteUser = createAsyncThunk(
       await axiosInstance.delete(`/api/User/${id}`);
       return id;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.errMessage || "Lỗi xóa người dùng");
+      return rejectWithValue(
+        error.response?.data?.errMessage || "Lỗi xóa người dùng"
+      );
     }
   }
 );

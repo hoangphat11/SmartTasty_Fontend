@@ -20,7 +20,6 @@ import { getImageUrl } from "@/constants/config/imageBaseUrl";
 import LanguageSelector from "@/components/layouts/LanguageSelector";
 import ThemeToggleButton from "@/components/layouts/ThemeToggleButton";
 
-
 const getCookie = (name: string): string | null => {
   if (typeof document === "undefined") return null;
   const match = document.cookie.match(new RegExp(`(^| )${name}=([^;]+)`));
@@ -43,7 +42,9 @@ const Header = () => {
       const storedUser = localStorage.getItem("user");
       if (storedUser) {
         const parsedUser = JSON.parse(storedUser);
-        const userName = parsedUser?.user?.userName || "User";
+        // const userName = parsedUser?.user?.userName || "User";
+        const userName = parsedUser?.userName || "User";
+
         setLocalUserName(userName);
       }
     } catch (err) {

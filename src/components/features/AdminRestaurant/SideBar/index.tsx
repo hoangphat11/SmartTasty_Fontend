@@ -94,8 +94,8 @@ const Sidebar = () => {
             </ListItemButton>
             <ListItemButton
               component={Link}
-              href="/"
-              selected={pathname === "/"}
+              href="/tablebooking"
+              selected={pathname === "/tablebooking"}
             >
               <ListItemText primary="Bàn đã đặt" />
             </ListItemButton>

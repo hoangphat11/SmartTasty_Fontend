@@ -7,6 +7,7 @@ import {
   TextField,
   Typography,
   CircularProgress,
+  Link as MuiLink,
 } from "@mui/material";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -174,6 +175,18 @@ const RegisterBusiness = () => {
               "Đăng ký"
             )}
           </Button>
+
+          <Typography textAlign="center" mt={1}>
+            Bạn đã có tài khoản?{" "}
+            <MuiLink
+              component="button"
+              onClick={() => router.push("/login")}
+              underline="hover"
+              color="primary"
+            >
+              Đăng nhập
+            </MuiLink>
+          </Typography>
         </Box>
       </Card>
     </div>

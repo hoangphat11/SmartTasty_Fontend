@@ -10,7 +10,10 @@ import {
   Typography,
   FormControlLabel,
   Link,
+  InputAdornment,
+  IconButton,
 } from "@mui/material";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./styles.module.scss";
@@ -23,6 +26,7 @@ const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [userPassword, setUserPassword] = useState("");
   const [remember, setRemember] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
@@ -31,6 +35,7 @@ const LoginPage = () => {
     (state: RootState) => state.user
   );
 
+  // Lấy thông tin đã lưu nếu chọn nhớ đăng nhập
   useEffect(() => {
     const savedLogin = localStorage.getItem("rememberedLogin");
     if (savedLogin) {
@@ -41,6 +46,7 @@ const LoginPage = () => {
     }
   }, []);
 
+  // Chuyển hướng khi đăng nhập thành công
   useEffect(() => {
     if (user) {
       toast.success("Đăng nhập thành công!");
@@ -49,7 +55,7 @@ const LoginPage = () => {
           router.push("/admin");
           break;
         case "business":
-          router.push("/dashboard");
+          router.push("/restaurant");
           break;
         default:
           router.push("/");
@@ -57,6 +63,7 @@ const LoginPage = () => {
     }
   }, [user]);
 
+  // Hiển thị lỗi nếu có
   useEffect(() => {
     if (error) {
       toast.error(error);
@@ -82,6 +89,7 @@ const LoginPage = () => {
           flexDirection="column"
           gap={2}
         >
+          {/* Email */}
           <TextField
             label="Email"
             variant="outlined"
@@ -92,16 +100,30 @@ const LoginPage = () => {
             onChange={(e) => setEmail(e.target.value)}
           />
 
+          {/* Mật khẩu với icon mắt */}
           <TextField
             label="Mật khẩu"
             variant="outlined"
             fullWidth
             required
-            type="password"
+            type={showPassword ? "text" : "password"}
             value={userPassword}
             onChange={(e) => setUserPassword(e.target.value)}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    onClick={() => setShowPassword(!showPassword)}
+                    edge="end"
+                  >
+                    {showPassword ? <Visibility /> : <VisibilityOff />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
           />
 
+          {/* Nhớ đăng nhập & quên mật khẩu */}
           <Box
             display="flex"
             justifyContent="space-between"
@@ -126,6 +148,7 @@ const LoginPage = () => {
             </Link>
           </Box>
 
+          {/* Nút đăng nhập */}
           <Button
             type="submit"
             variant="contained"
@@ -141,6 +164,7 @@ const LoginPage = () => {
           </Button>
         </Box>
 
+        {/* Link đăng ký */}
         <Box className={styles.loginBottom} mt={2} textAlign="center">
           Bạn mới biết đến Smarttasty?{" "}
           <Link

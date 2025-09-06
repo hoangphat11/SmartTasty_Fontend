@@ -32,7 +32,7 @@ export const fetchDishes = createAsyncThunk<
 >("dishes/fetch", async (restaurantId, { rejectWithValue }) => {
   try {
     const res = await axios.get(`${API_URL}/Dishes/restaurant/${restaurantId}`);
-    return res.data;
+    return res.data?.data || [];
   } catch (err: any) {
     return rejectWithValue(
       err?.response?.data?.message || "Lỗi khi tải danh sách món ăn"
@@ -46,7 +46,7 @@ export const addDish = createAsyncThunk<
   { rejectValue: string }
 >("dishes/add", async (data, { rejectWithValue }) => {
   try {
-    const token = getToken();
+    const token = localStorage.getItem("token");
     if (!token) return rejectWithValue("Không tìm thấy token đăng nhập");
 
     const res = await axios.post(`${API_URL}/Dishes`, data, {
@@ -56,9 +56,10 @@ export const addDish = createAsyncThunk<
       },
     });
 
-    const dish: Dish = res.data;
+    // Nếu API trả về { data: {...} }
+    const dish: Dish = res.data.data || res.data;
 
-    // Tự bổ sung imageUrl nếu backend chưa có
+    // Bổ sung imageUrl nếu backend chỉ trả về image
     if (!dish.imageUrl && dish.image) {
       dish.imageUrl = `${CLOUDINARY_PREFIX}${dish.image}`;
     }
@@ -71,25 +72,27 @@ export const addDish = createAsyncThunk<
   }
 });
 
+
 export const updateDish = createAsyncThunk<
   Dish,
   { id: string; data: FormData },
   { rejectValue: string }
 >("dishes/update", async ({ id, data }, { rejectWithValue }) => {
   try {
-    const token = getToken();
+    // ✅ Lấy token trực tiếp từ localStorage
+    const token = localStorage.getItem("token");
     if (!token) return rejectWithValue("Không tìm thấy token đăng nhập");
 
     const res = await axios.put(`${API_URL}/Dishes/${id}`, data, {
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${token}`, // gửi token vào headers
         "Content-Type": "multipart/form-data",
       },
     });
 
-    const updatedDish: Dish = res.data;
+    const updatedDish: Dish = res.data?.data || res.data;
 
-    // Bổ sung imageUrl nếu chưa có
+    // ✅ Nếu backend chỉ trả về "image" thì tự ghép link Cloudinary
     if (!updatedDish.imageUrl && updatedDish.image) {
       updatedDish.imageUrl = `${CLOUDINARY_PREFIX}${updatedDish.image}`;
     }
@@ -108,7 +111,7 @@ export const deleteDish = createAsyncThunk<
   { rejectValue: string }
 >("dishes/delete", async (id, { rejectWithValue }) => {
   try {
-    const token = getToken();
+    const token = localStorage.getItem("token");
     if (!token) return rejectWithValue("Không tìm thấy token đăng nhập");
 
     await axios.delete(`${API_URL}/Dishes/${id}`, {

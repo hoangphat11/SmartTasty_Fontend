@@ -117,7 +117,7 @@ const AccountPage = () => {
         >
           <Tab label="Thông tin tài khoản" value="info" />
           <Tab label="Đổi mật khẩu" value="password" />
-          <Tab label="Đăng xuất" onClick={handleLogout} />
+          {/* <Tab label="Đăng xuất" onClick={handleLogout} /> */}
         </Tabs>
       </div>
 

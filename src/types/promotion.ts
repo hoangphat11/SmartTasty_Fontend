@@ -1,9 +1,9 @@
-
 export interface Promotion {
-  id?: number;
+  id: number;
   title: string;
-  description: string;
-  startDate: string;
-  endDate: string;
-  restaurantId?: string;
+  description?: string;
+  discountPercent: number;
+  startDate: string; // ISO date
+  endDate: string; // ISO date
+  isActive: boolean;
 }

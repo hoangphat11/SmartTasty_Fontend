@@ -13,7 +13,6 @@ import {
 } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-import styles from "./styles.module.scss";
 import { useAppDispatch, useAppSelector } from "@/redux/hook";
 import {
   fetchRestaurantByOwner,
@@ -39,20 +38,20 @@ const RestaurantPage = () => {
     address: "",
     openTime: "",
     closeTime: "",
+    file: null as File | null,
   });
 
   useEffect(() => {
     const userData = JSON.parse(localStorage.getItem("user") || "{}");
-    const userId = userData?.user?.userId;
-    const role = userData?.user?.role;
-    const token = userData?.token;
+    const token = localStorage.getItem("token");
+    const role = userData?.role;
 
     if (!token || role !== "business") {
       toast.error("Bạn không có quyền truy cập.");
       return;
     }
 
-    dispatch(fetchRestaurantByOwner({ token, userId }));
+    dispatch(fetchRestaurantByOwner({ token }));
 
     return () => {
       dispatch(clearCurrentRestaurant());
@@ -63,10 +62,11 @@ const RestaurantPage = () => {
     if (restaurantInfo?.id) {
       dispatch(fetchDishes(restaurantInfo.id.toString()));
       setFormState({
-        name: restaurantInfo.name,
-        address: restaurantInfo.address,
-        openTime: restaurantInfo.openTime,
-        closeTime: restaurantInfo.closeTime,
+        name: restaurantInfo.name || "",
+        address: restaurantInfo.address || "",
+        openTime: restaurantInfo.openTime || "",
+        closeTime: restaurantInfo.closeTime || "",
+        file: null,
       });
     }
   }, [restaurantInfo, dispatch]);
@@ -74,8 +74,11 @@ const RestaurantPage = () => {
   const handleUpdate = async () => {
     if (!restaurantInfo) return;
 
-    const userData = JSON.parse(localStorage.getItem("user") || "{}");
-    const token = userData?.token;
+    const token = localStorage.getItem("token");
+    if (!token) {
+      toast.error("Không tìm thấy token, vui lòng đăng nhập lại.");
+      return;
+    }
 
     const formPayload = {
       ...restaurantInfo,
@@ -83,19 +86,18 @@ const RestaurantPage = () => {
       address: formState.address,
       openTime: formState.openTime,
       closeTime: formState.closeTime,
-      file: new File([], ""), // giữ nguyên nếu không dùng ảnh
+      file: formState.file,
     };
 
     try {
       await dispatch(
-        updateRestaurant({ id: restaurantInfo.id, data: formPayload })
+        updateRestaurant({ token, id: restaurantInfo.id, data: formPayload })
       ).unwrap();
+
       toast.success("Cập nhật nhà hàng thành công!");
-      dispatch(
-        fetchRestaurantByOwner({ token, userId: restaurantInfo.ownerId })
-      );
+      dispatch(fetchRestaurantByOwner({ token }));
       setIsEditing(false);
-    } catch (err) {
+    } catch {
       toast.error("Cập nhật thất bại.");
     }
   };
@@ -103,15 +105,16 @@ const RestaurantPage = () => {
   const handleCancelEdit = () => {
     if (!restaurantInfo) return;
     setFormState({
-      name: restaurantInfo.name,
-      address: restaurantInfo.address,
-      openTime: restaurantInfo.openTime,
-      closeTime: restaurantInfo.closeTime,
+      name: restaurantInfo.name || "",
+      address: restaurantInfo.address || "",
+      openTime: restaurantInfo.openTime || "",
+      closeTime: restaurantInfo.closeTime || "",
+      file: null,
     });
     setIsEditing(false);
   };
 
-  if (restaurantLoading || (!restaurantInfo && !restaurantLoading)) {
+  if (restaurantLoading) {
     return (
       <Box display="flex" justifyContent="center" py={6}>
         <CircularProgress />
@@ -121,13 +124,10 @@ const RestaurantPage = () => {
 
   if (!restaurantInfo) {
     return (
-      <Box className={styles.loginContainer}>
-        <Paper elevation={3} className={styles.loginCard}>
+      <Box display="flex" justifyContent="center" py={6}>
+        <Paper elevation={3} sx={{ padding: 4, textAlign: "center" }}>
           <Typography variant="h5" gutterBottom>
             Bạn chưa có nhà hàng
-          </Typography>
-          <Typography paragraph>
-            Vui lòng tạo nhà hàng để bắt đầu quản lý.
           </Typography>
           <Button
             variant="contained"
@@ -142,106 +142,133 @@ const RestaurantPage = () => {
   }
 
   return (
-    <Box className={styles.pageContainer}>
-      <Paper elevation={3} className={styles.restaurantCard}>
-        <Box className={styles.restaurantContent}>
-          <Box className={styles.restaurantImageWrapper}>
-            <img
-              src={restaurantInfo.imageUrl}
-              alt="Ảnh nhà hàng"
-              className={styles.restaurantImage}
-            />
-          </Box>
-          <Box className={styles.restaurantInfo}>
-            {isEditing ? (
-              <>
-                <TextField
-                  fullWidth
-                  label="Tên nhà hàng"
-                  value={formState.name}
-                  onChange={(e) =>
-                    setFormState({ ...formState, name: e.target.value })
-                  }
-                  margin="normal"
-                />
-                <TextField
-                  fullWidth
-                  label="Địa chỉ"
-                  value={formState.address}
-                  onChange={(e) =>
-                    setFormState({ ...formState, address: e.target.value })
-                  }
-                  margin="normal"
-                />
-                <TextField
-                  fullWidth
-                  label="Giờ mở cửa"
-                  value={formState.openTime}
-                  onChange={(e) =>
-                    setFormState({ ...formState, openTime: e.target.value })
-                  }
-                  margin="normal"
-                />
-                <TextField
-                  fullWidth
-                  label="Giờ đóng cửa"
-                  value={formState.closeTime}
-                  onChange={(e) =>
-                    setFormState({ ...formState, closeTime: e.target.value })
-                  }
-                  margin="normal"
-                />
-                <Box display="flex" gap={2} mt={2}>
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={handleUpdate}
-                  >
-                    Lưu thay đổi
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    color="secondary"
-                    onClick={handleCancelEdit}
-                  >
-                    Huỷ
-                  </Button>
-                </Box>
-              </>
-            ) : (
-              <>
-                <Typography variant="h4">{restaurantInfo.name}</Typography>
-                <Typography>
-                  <strong>Địa chỉ:</strong> {restaurantInfo.address}
-                </Typography>
-                <Typography>
-                  <strong>Giờ hoạt động:</strong> {restaurantInfo.openTime} -{" "}
-                  {restaurantInfo.closeTime}
-                </Typography>
+    <Box sx={{ p: 4 }}>
+      <Paper elevation={3} sx={{ display: "flex", gap: 4, p: 3, mb: 4 }}>
+        <Box>
+          <img
+            src={
+              formState.file
+                ? URL.createObjectURL(formState.file)
+                : restaurantInfo.imageUrl ||
+                  `https://res.cloudinary.com/djcur1ymq/image/upload/${restaurantInfo.imagePublicId}`
+            }
+            alt="Ảnh nhà hàng"
+            style={{
+              width: 300,
+              height: 200,
+              objectFit: "cover",
+              borderRadius: 8,
+            }}
+          />
+          {isEditing && (
+            <Button
+              variant="outlined"
+              component="label"
+              sx={{ mt: 2 }}
+            >
+              Chọn ảnh mới
+              <input
+                type="file"
+                hidden
+                accept="image/*"
+                onChange={(e) =>
+                  setFormState({
+                    ...formState,
+                    file: e.target.files?.[0] || null,
+                  })
+                }
+              />
+            </Button>
+          )}
+        </Box>
+
+        <Box flex={1}>
+          {isEditing ? (
+            <>
+              <TextField
+                fullWidth
+                label="Tên nhà hàng"
+                value={formState.name}
+                onChange={(e) =>
+                  setFormState({ ...formState, name: e.target.value })
+                }
+                margin="normal"
+              />
+              <TextField
+                fullWidth
+                label="Địa chỉ"
+                value={formState.address}
+                onChange={(e) =>
+                  setFormState({ ...formState, address: e.target.value })
+                }
+                margin="normal"
+              />
+              <TextField
+                fullWidth
+                label="Giờ mở cửa"
+                value={formState.openTime}
+                onChange={(e) =>
+                  setFormState({ ...formState, openTime: e.target.value })
+                }
+                margin="normal"
+              />
+              <TextField
+                fullWidth
+                label="Giờ đóng cửa"
+                value={formState.closeTime}
+                onChange={(e) =>
+                  setFormState({ ...formState, closeTime: e.target.value })
+                }
+                margin="normal"
+              />
+              <Box display="flex" gap={2} mt={2}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleUpdate}
+                >
+                  Lưu thay đổi
+                </Button>
                 <Button
                   variant="outlined"
-                  onClick={() => setIsEditing(true)}
-                  sx={{ mt: 2 }}
+                  color="secondary"
+                  onClick={handleCancelEdit}
                 >
-                  Sửa
+                  Huỷ
                 </Button>
-              </>
-            )}
-          </Box>
+              </Box>
+            </>
+          ) : (
+            <>
+              <Typography variant="h4">{restaurantInfo.name}</Typography>
+              <Typography>
+                <strong>Địa chỉ:</strong> {restaurantInfo.address}
+              </Typography>
+              <Typography>
+                <strong>Giờ hoạt động:</strong> {restaurantInfo.openTime} -{" "}
+                {restaurantInfo.closeTime}
+              </Typography>
+              <Button
+                variant="outlined"
+                onClick={() => setIsEditing(true)}
+                sx={{ mt: 2 }}
+              >
+                Sửa
+              </Button>
+            </>
+          )}
         </Box>
       </Paper>
 
-      <Box className={styles.menuContainer}>
+      {/* Thực đơn */}
+      <Box>
         <Typography variant="h5" gutterBottom>
           Thực đơn
         </Typography>
-
         {dishLoading ? (
-          <Box display="flex" justifyContent="center" py={4}>
-            <CircularProgress />
-          </Box>
+          <CircularProgress />
         ) : dishes.length === 0 ? (
-          <Typography>Chưa có món ăn nào trong nhà hàng.</Typography>
+          <Typography>Chưa có món ăn nào.</Typography>
         ) : (
           <Grid container spacing={2}>
             {dishes.map((dish) => (
@@ -260,7 +287,7 @@ const RestaurantPage = () => {
                           label="Ngưng bán"
                           color="error"
                           size="small"
-                          style={{ marginLeft: 8 }}
+                          sx={{ ml: 1 }}
                         />
                       )}
                     </Typography>

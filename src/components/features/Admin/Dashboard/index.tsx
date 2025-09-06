@@ -2,14 +2,21 @@
 
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-import { Box, Typography, Avatar, Paper, Grid } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Avatar,
+  Paper,
+  Grid,
+  CircularProgress,
+} from "@mui/material";
 import PersonIcon from "@mui/icons-material/Person";
 import BusinessIcon from "@mui/icons-material/Business";
 import { toast } from "react-toastify";
 import moment from "moment";
 import axiosInstance from "@/lib/axios/axiosInstance";
 import { User } from "@/types/user";
-import { Restaurant } from "@/types/restaurant"; // cần có type Restaurant
+import { Restaurant } from "@/types/restaurant";
 import styles from "./styles.module.scss";
 
 const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
@@ -19,40 +26,60 @@ const Dashboard = () => {
   const [businessUsers, setBusinessUsers] = useState<User[]>([]);
   const [normalUsers, setNormalUsers] = useState<User[]>([]);
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Fetch User
+  // Fetch Users
   const fetchUsers = async () => {
     try {
       const res = await axiosInstance.get("/api/User");
-      const allUsers: User[] = res.data.data || [];
-      const businesses = allUsers.filter((user) => user.role === "business");
-      const users = allUsers.filter((user) => user.role === "user");
-
+      const allUsers: User[] = res.data?.data || [];
       setUsers(allUsers);
-      setBusinessUsers(businesses);
-      setNormalUsers(users);
+      setBusinessUsers(allUsers.filter((u) => u.role === "business"));
+      setNormalUsers(allUsers.filter((u) => u.role === "user"));
+      console.log("Users:", allUsers); // ✅ Debug
+      return allUsers;
     } catch (err) {
       toast.error("Lỗi khi lấy danh sách Users!");
+      return [];
     }
   };
 
-  // Fetch Restaurant
+  // Fetch Restaurants
   const fetchRestaurants = async () => {
     try {
       const res = await axiosInstance.get("/api/Restaurant");
-      setRestaurants(res.data.data || []);
+      const data = res.data?.data;
+      const safeData = Array.isArray(data) ? data : data?.items || [];
+      setRestaurants(safeData);
+      console.log("Restaurants:", safeData); // ✅ Debug
+      return safeData;
     } catch (err) {
       toast.error("Lỗi khi lấy danh sách nhà hàng!");
+      setRestaurants([]);
+      return [];
     }
   };
 
   useEffect(() => {
-    fetchUsers();
-    fetchRestaurants();
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+
+    const fetchAll = async () => {
+      setLoading(true);
+      await Promise.all([fetchUsers(), fetchRestaurants()]);
+      setLoading(false);
+    };
+
+    fetchAll();
   }, []);
 
-  const getChartData = (list: { createdAt: string }[]) => {
+  const getChartData = (list: { createdAt?: string }[] | undefined | null) => {
+    if (!Array.isArray(list)) return {};
     return list.reduce((acc: Record<string, number>, item) => {
+      if (!item.createdAt) return acc;
       const date = moment(item.createdAt).format("MM/YYYY");
       acc[date] = acc[date] ? acc[date] + 1 : 1;
       return acc;
@@ -67,6 +94,20 @@ const Dashboard = () => {
     chart: { id: "chart" },
     xaxis: { categories },
   });
+
+  if (loading) {
+    return (
+      <Box
+        className={styles.dashboard}
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        height="70vh"
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <Box className={styles.dashboard}>
@@ -165,10 +206,7 @@ const Dashboard = () => {
             <Chart
               options={chartOptions(Object.keys(restaurantChartData))}
               series={[
-                {
-                  name: "Nhà hàng",
-                  data: Object.values(restaurantChartData),
-                },
+                { name: "Nhà hàng", data: Object.values(restaurantChartData) },
               ]}
               type="bar"
               width="100%"

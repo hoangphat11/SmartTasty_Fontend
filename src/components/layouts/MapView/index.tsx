@@ -6,7 +6,8 @@ import L from "leaflet";
 import { useEffect } from "react";
 
 const customIcon = new L.Icon({
-  iconUrl: "https://maps.gstatic.com/mapfiles/api-3/images/spotlight-poi2_hdpi.png",
+  iconUrl:
+    "https://maps.gstatic.com/mapfiles/api-3/images/spotlight-poi2_hdpi.png",
   iconSize: [40, 40],
   iconAnchor: [20, 40],
 });

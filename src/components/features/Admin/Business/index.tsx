@@ -1,79 +1,76 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import {
-  Avatar,
   Box,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  IconButton,
-  InputAdornment,
-  Paper,
   Table,
+  TableHead,
   TableBody,
+  TableRow,
   TableCell,
   TableContainer,
-  TableHead,
-  TableRow,
+  Paper,
   TextField,
-  Typography,
-  Pagination,
+  InputAdornment,
+  IconButton,
   Tooltip,
+  Pagination,
+  Typography,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  Button,
 } from "@mui/material";
-import DeleteIcon from "@mui/icons-material/Delete";
 import SearchIcon from "@mui/icons-material/Search";
-import { useEffect, useState } from "react";
-import moment from "moment";
+import DeleteIcon from "@mui/icons-material/Delete";
+import { useAppDispatch, useAppSelector } from "@/redux/hook";
+import { fetchRestaurants } from "@/redux/slices/restaurantSlice";
 import { toast } from "react-toastify";
 import axiosInstance from "@/lib/axios/axiosInstance";
 import { User } from "@/types/user";
-import styles from "./styles.module.scss";
 
 interface ExtendedUser extends User {
   restaurants?: string;
 }
 
 const UserPage = () => {
+  const dispatch = useAppDispatch();
+  const { restaurants } = useAppSelector((state) => state.restaurant);
+
   const [users, setUsers] = useState<ExtendedUser[]>([]);
   const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 6;
 
+  // 🔹 Fetch users và gán nhà hàng
+  // 🔹 Fetch users và gán nhà hàng (chỉ business)
   const fetchUsers = async () => {
     try {
-      const [userRes, restaurantRes] = await Promise.all([
-        axiosInstance.get("/api/User"),
-        axiosInstance.get("/api/Restaurant"),
-      ]);
+      const res = await axiosInstance.get("/api/User");
+      const allUsers: User[] = res.data?.data || [];
 
-      const allUsers: User[] = userRes.data.data || [];
-      const allRestaurants: any[] = restaurantRes.data.data || [];
-
-      const businessUsers = allUsers
+      // lọc role === 'business' và map nhà hàng
+      const enrichedUsers: ExtendedUser[] = allUsers
         .filter((user) => user.role === "business")
         .map((user) => {
-          const userRestaurants = allRestaurants
+          const userRestaurants = restaurants
             .filter((r) => r.ownerId === user.userId)
             .map((r) => r.name)
             .join(", ");
-          return { ...user, restaurants: userRestaurants };
+          return { ...user, restaurants: userRestaurants || "Chưa có" };
         });
 
-      setUsers(businessUsers);
-    } catch (error) {
-      toast.error("Không thể lấy danh sách người dùng hoặc nhà hàng!");
+      setUsers(enrichedUsers);
+    } catch (err) {
+      toast.error("Lấy danh sách người dùng thất bại!");
     }
   };
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
+  // 🔹 Xoá user
   const handleDelete = async () => {
     if (!selectedUserId) return;
     try {
@@ -81,61 +78,65 @@ const UserPage = () => {
       toast.success("Xoá thành công!");
       fetchUsers();
       setOpenDialog(false);
-    } catch (error) {
+    } catch (err) {
       toast.error("Xoá thất bại!");
     }
   };
 
-  const filteredData = users.filter(
-    (user) =>
-      user.userName.toLowerCase().includes(search.toLowerCase()) ||
-      user.email.toLowerCase().includes(search.toLowerCase())
-  );
+  useEffect(() => {
+    dispatch(fetchRestaurants()); // fetch tất cả nhà hàng trước
+  }, [dispatch]);
 
+  useEffect(() => {
+    fetchUsers();
+  }, [restaurants]); // reload users khi có dữ liệu nhà hàng
+
+  // 🔹 Filter + Pagination
+  const filteredData = users.filter(
+    (u) =>
+      u.userName.toLowerCase().includes(search.toLowerCase()) ||
+      u.email.toLowerCase().includes(search.toLowerCase())
+  );
   const pageCount = Math.ceil(filteredData.length / pageSize);
   const paginatedData = filteredData.slice(
     (currentPage - 1) * pageSize,
     currentPage * pageSize
   );
 
-  const handlePageChange = (_: React.ChangeEvent<unknown>, value: number) => {
-    setCurrentPage(value);
-  };
-
   return (
-    <Box className={styles.container}>
-      <Typography className={styles.header}>Danh sách Business User</Typography>
+    <Box>
+      <Typography variant="h4" mb={2}>
+        Danh sách Business User
+      </Typography>
 
-      <Box className={styles.searchBox}>
-        <TextField
-          label="Tìm kiếm người dùng"
-          variant="outlined"
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setCurrentPage(1);
-          }}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon />
-              </InputAdornment>
-            ),
-          }}
-        />
-      </Box>
+      <TextField
+        label="Tìm kiếm user"
+        value={search}
+        onChange={(e) => {
+          setSearch(e.target.value);
+          setCurrentPage(1);
+        }}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <SearchIcon />
+            </InputAdornment>
+          ),
+        }}
+        fullWidth
+        sx={{ mb: 2 }}
+      />
 
-      <TableContainer component={Paper} className={styles.tableContainer}>
+      <TableContainer component={Paper}>
         <Table>
           <TableHead>
             <TableRow>
               <TableCell align="center">Xoá</TableCell>
               <TableCell>UserName</TableCell>
-              <TableCell align="center">Email</TableCell>
-              <TableCell align="center">Phone</TableCell>
-              <TableCell align="center">Role</TableCell>
-              <TableCell align="center">Nhà hàng</TableCell>
-              <TableCell align="center">Ngày tạo</TableCell>
+              <TableCell>Email</TableCell>
+              <TableCell>Role</TableCell>
+              <TableCell>Nhà hàng</TableCell>
+              <TableCell>Ngày tạo</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -148,28 +149,17 @@ const UserPage = () => {
                         setSelectedUserId(user.userId);
                         setOpenDialog(true);
                       }}
-                      className={styles.deleteBtn}
                     >
                       <DeleteIcon />
                     </IconButton>
                   </Tooltip>
                 </TableCell>
+                <TableCell>{user.userName}</TableCell>
+                <TableCell>{user.email}</TableCell>
+                <TableCell>{user.role}</TableCell>
+                <TableCell>{user.restaurants || "Chưa có"}</TableCell>
                 <TableCell>
-                  <Box className={styles.avatarCell}>
-                    <Avatar>{user.userName.charAt(0).toUpperCase()}</Avatar>
-                    <Typography className={styles.name}>
-                      {user.userName}
-                    </Typography>
-                  </Box>
-                </TableCell>
-                <TableCell align="center">{user.email}</TableCell>
-                <TableCell align="center">{user.phone}</TableCell>
-                <TableCell align="center">{user.role}</TableCell>
-                <TableCell align="center">
-                  {user.restaurants || "Chưa có"}
-                </TableCell>
-                <TableCell align="center">
-                  {moment(user.createdAt).format("DD/MM/YYYY")}
+                  {new Date(user.createdAt).toLocaleDateString("vi-VN")}
                 </TableCell>
               </TableRow>
             ))}
@@ -177,16 +167,15 @@ const UserPage = () => {
         </Table>
       </TableContainer>
 
-      <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
+      <Box display="flex" justifyContent="center" mt={2}>
         <Pagination
           count={pageCount}
           page={currentPage}
-          onChange={handlePageChange}
-          color="primary"
-          shape="rounded"
+          onChange={(_, v) => setCurrentPage(v)}
         />
       </Box>
 
+      {/* 🔹 Dialog xác nhận xoá */}
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
         <DialogTitle>Xác nhận xoá</DialogTitle>
         <DialogContent>
