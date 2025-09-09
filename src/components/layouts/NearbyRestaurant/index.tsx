@@ -26,8 +26,8 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 
-// Cài đặt icon
-delete L.Icon.Default.prototype._getIconUrl;
+// Cài đặt icon mặc định
+delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: "/marker-icon-blue.png",
   iconUrl: "/marker-icon-blue.png",
@@ -35,6 +35,7 @@ L.Icon.Default.mergeOptions({
     "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
 });
 
+// Icon cho user
 const userIcon = new L.Icon({
   iconUrl: "/marker-icon-red.png",
   shadowUrl:
@@ -45,6 +46,7 @@ const userIcon = new L.Icon({
   shadowSize: [41, 41],
 });
 
+// Icon cho restaurant
 const restaurantIcon = new L.Icon({
   iconUrl: "/marker-icon-blue.png",
   shadowUrl:
@@ -67,6 +69,7 @@ const NearbyRestaurantsPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
 
+  // Lấy vị trí từ session hoặc hỏi người dùng
   useEffect(() => {
     const saved = sessionStorage.getItem("user_location");
     if (saved) {
@@ -76,8 +79,9 @@ const NearbyRestaurantsPage = () => {
     } else {
       setOpenDialog(true); // Hiện popup nếu chưa có vị trí
     }
-  }, []);
+  }, [dispatch]);
 
+  // Hàm lấy vị trí thực tế từ browser
   const getUserLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -112,7 +116,7 @@ const NearbyRestaurantsPage = () => {
 
   return (
     <Box className={styles.container}>
-      {/* Modal */}
+      {/* Modal xin quyền location */}
       <Dialog open={openDialog}>
         <DialogTitle>Cho phép Smarttasty truy cập vị trí</DialogTitle>
         <DialogContent>
@@ -144,11 +148,19 @@ const NearbyRestaurantsPage = () => {
           <Box className={styles.list}>
             {nearby.map((restaurant) => (
               <Card key={restaurant.id} className={styles.card}>
-                <img
+                <Box
+                  component="img"
                   src={restaurant.imageUrl}
                   alt={restaurant.name}
-                  className={styles.image}
+                  sx={{
+                    width: "100%",
+                    height: { xs: 150, sm: 180, md: 200 },
+                    objectFit: "cover",
+                    borderTopLeftRadius: "4px",
+                    borderTopRightRadius: "4px",
+                  }}
                 />
+
                 <CardContent className={styles.content}>
                   <Typography
                     variant="subtitle1"
@@ -157,8 +169,9 @@ const NearbyRestaurantsPage = () => {
                     noWrap
                     title={restaurant.name}
                     component={ButtonBase} // biến Typography thành clickable
-                    onClick={() => router.push(`/RestaurantDetails/${restaurant.id}`)}
-                   
+                    onClick={() =>
+                      router.push(`/RestaurantDetails/${restaurant.id}`)
+                    }
                   >
                     {restaurant.name}
                   </Typography>
@@ -194,7 +207,9 @@ const NearbyRestaurantsPage = () => {
                     color="primary"
                     fullWidth
                     size="small"
-                    onClick={() => router.push(`/Restaurants/${restaurant.id}`)}
+                    onClick={() =>
+                      router.push(`/RestaurantDetails/${restaurant.id}`)
+                    }
                   >
                     Đặt chỗ ngay
                   </Button>
@@ -242,7 +257,7 @@ const NearbyRestaurantsPage = () => {
         </Box>
       )}
 
-      {/* Snackbar */}
+      {/* Snackbar báo lỗi */}
       <Snackbar
         open={!!error}
         autoHideDuration={4000}

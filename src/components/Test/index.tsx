@@ -1,7 +1,7 @@
 import { useTranslations } from "next-intl";
 
 const Test = () => {
-  const t_home = useTranslations("home");
+  const t_home = useTranslations("header");
 
   return (
     <div>
@@ -9,7 +9,7 @@ const Test = () => {
         Test Theme And Locale
       </h1>
       <h2 className="text-lg font-semibold">
-        {t_home("homepage_btn_title")} / {t_home("logout_btn_title")}
+        {t_home("category_btn_title")} / {t_home("account_btn_title")}
       </h2>
     </div>
   );

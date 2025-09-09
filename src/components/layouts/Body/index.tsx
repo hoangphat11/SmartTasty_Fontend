@@ -64,7 +64,9 @@ const BodyPage = () => {
                 noWrap
                 title={restaurant.name}
                 component={ButtonBase}
-                onClick={() => router.push(`/Restaurants/${restaurant.id}`)}
+                onClick={() =>
+                  router.push(`/RestaurantDetails/${restaurant.id}`)
+                }
                 sx={{ textAlign: "left", width: "100%" }}
               >
                 {restaurant.name}
@@ -97,7 +99,9 @@ const BodyPage = () => {
                 color="primary"
                 fullWidth
                 size="small"
-                onClick={() => router.push(`/RestaurantDetails/${restaurant.id}`)}
+                onClick={() =>
+                  router.push(`/RestaurantDetails/${restaurant.id}`)
+                }
               >
                 Đặt chỗ ngay
               </Button>
