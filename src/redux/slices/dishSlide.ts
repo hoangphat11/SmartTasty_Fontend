@@ -1,16 +1,15 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import axios from "axios";
+import axiosInstance from "@/lib/axios/axiosInstance";
 import { Dish } from "@/types/dish";
 
-const API_URL = "https://smarttasty-backend.onrender.com/api";
 const CLOUDINARY_PREFIX = "https://res.cloudinary.com/djcur1ymq/image/upload/";
 
-const getToken = (): string | null => {
-  try {
-    return JSON.parse(localStorage.getItem("user") || "{}")?.token || null;
-  } catch (error) {
-    return null;
-  }
+const normalizeDish = (dish: Dish): Dish => {
+  return {
+    ...dish,
+    imageUrl:
+      dish.imageUrl || (dish.image ? `${CLOUDINARY_PREFIX}${dish.image}` : ""),
+  };
 };
 
 interface DishState {
@@ -25,14 +24,18 @@ const initialState: DishState = {
   error: null,
 };
 
+// ================== ASYNC ACTIONS ==================
+
 export const fetchDishes = createAsyncThunk<
   Dish[],
-  string,
+  number,
   { rejectValue: string }
 >("dishes/fetch", async (restaurantId, { rejectWithValue }) => {
   try {
-    const res = await axios.get(`${API_URL}/Dishes/restaurant/${restaurantId}`);
-    return res.data?.data || [];
+    const res = await axiosInstance.get(
+      `/api/Dishes/restaurant/${restaurantId}`
+    );
+    return (res.data?.data || []).map(normalizeDish);
   } catch (err: any) {
     return rejectWithValue(
       err?.response?.data?.message || "Lỗi khi tải danh sách món ăn"
@@ -46,25 +49,10 @@ export const addDish = createAsyncThunk<
   { rejectValue: string }
 >("dishes/add", async (data, { rejectWithValue }) => {
   try {
-    const token = localStorage.getItem("token");
-    if (!token) return rejectWithValue("Không tìm thấy token đăng nhập");
-
-    const res = await axios.post(`${API_URL}/Dishes`, data, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "multipart/form-data",
-      },
+    const res = await axiosInstance.post(`/api/Dishes`, data, {
+      headers: { "Content-Type": "multipart/form-data" },
     });
-
-    // Nếu API trả về { data: {...} }
-    const dish: Dish = res.data.data || res.data;
-
-    // Bổ sung imageUrl nếu backend chỉ trả về image
-    if (!dish.imageUrl && dish.image) {
-      dish.imageUrl = `${CLOUDINARY_PREFIX}${dish.image}`;
-    }
-
-    return dish;
+    return normalizeDish(res.data.data || res.data);
   } catch (err: any) {
     return rejectWithValue(
       err?.response?.data?.message || "Lỗi khi thêm món ăn"
@@ -72,32 +60,16 @@ export const addDish = createAsyncThunk<
   }
 });
 
-
 export const updateDish = createAsyncThunk<
   Dish,
-  { id: string; data: FormData },
+  { id: number; data: FormData },
   { rejectValue: string }
 >("dishes/update", async ({ id, data }, { rejectWithValue }) => {
   try {
-    // ✅ Lấy token trực tiếp từ localStorage
-    const token = localStorage.getItem("token");
-    if (!token) return rejectWithValue("Không tìm thấy token đăng nhập");
-
-    const res = await axios.put(`${API_URL}/Dishes/${id}`, data, {
-      headers: {
-        Authorization: `Bearer ${token}`, // gửi token vào headers
-        "Content-Type": "multipart/form-data",
-      },
+    const res = await axiosInstance.put(`/api/Dishes/${id}`, data, {
+      headers: { "Content-Type": "multipart/form-data" },
     });
-
-    const updatedDish: Dish = res.data?.data || res.data;
-
-    // ✅ Nếu backend chỉ trả về "image" thì tự ghép link Cloudinary
-    if (!updatedDish.imageUrl && updatedDish.image) {
-      updatedDish.imageUrl = `${CLOUDINARY_PREFIX}${updatedDish.image}`;
-    }
-
-    return updatedDish;
+    return normalizeDish(res.data?.data || res.data);
   } catch (err: any) {
     return rejectWithValue(
       err?.response?.data?.message || "Lỗi khi cập nhật món ăn"
@@ -106,17 +78,12 @@ export const updateDish = createAsyncThunk<
 });
 
 export const deleteDish = createAsyncThunk<
-  string,
-  string,
+  number,
+  number,
   { rejectValue: string }
 >("dishes/delete", async (id, { rejectWithValue }) => {
   try {
-    const token = localStorage.getItem("token");
-    if (!token) return rejectWithValue("Không tìm thấy token đăng nhập");
-
-    await axios.delete(`${API_URL}/Dishes/${id}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    await axiosInstance.delete(`/api/Dishes/${id}`);
     return id;
   } catch (err: any) {
     return rejectWithValue(
@@ -124,6 +91,8 @@ export const deleteDish = createAsyncThunk<
     );
   }
 });
+
+// ================== SLICE ==================
 
 const dishSlice = createSlice({
   name: "dishes",
@@ -137,12 +106,7 @@ const dishSlice = createSlice({
         state.error = null;
       })
       .addCase(fetchDishes.fulfilled, (state, action) => {
-        state.items = action.payload.map((dish) => ({
-          ...dish,
-          imageUrl:
-            dish.imageUrl ||
-            (dish.image ? `${CLOUDINARY_PREFIX}${dish.image}` : ""),
-        }));
+        state.items = action.payload;
         state.loading = false;
       })
       .addCase(fetchDishes.rejected, (state, action) => {
@@ -154,25 +118,16 @@ const dishSlice = createSlice({
       .addCase(addDish.fulfilled, (state, action) => {
         state.items.push(action.payload);
       })
-      .addCase(addDish.rejected, (state, action) => {
-        state.error = action.payload || "Lỗi khi thêm món ăn";
-      })
 
       // UPDATE
       .addCase(updateDish.fulfilled, (state, action) => {
         const idx = state.items.findIndex((d) => d.id === action.payload.id);
         if (idx !== -1) state.items[idx] = action.payload;
       })
-      .addCase(updateDish.rejected, (state, action) => {
-        state.error = action.payload || "Lỗi khi cập nhật món ăn";
-      })
 
       // DELETE
       .addCase(deleteDish.fulfilled, (state, action) => {
         state.items = state.items.filter((d) => d.id !== action.payload);
-      })
-      .addCase(deleteDish.rejected, (state, action) => {
-        state.error = action.payload || "Lỗi khi xóa món ăn";
       });
   },
 });

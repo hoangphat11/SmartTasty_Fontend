@@ -14,8 +14,12 @@ import {
 } from "@mui/material";
 import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
 import SearchIcon from "@mui/icons-material/Search";
-import styles from "./styles.module.scss";
 import { FaUserCircle } from "react-icons/fa";
+import { useAppDispatch } from "@/redux/hook";
+import {
+  fetchRestaurants,
+  fetchRestaurantsByCategory,
+} from "@/redux/slices/restaurantSlice";
 import { getImageUrl } from "@/constants/config/imageBaseUrl";
 import LanguageSelector from "@/components/layouts/LanguageSelector";
 import ThemeToggleButton from "@/components/layouts/ThemeToggleButton";
@@ -31,6 +35,9 @@ const Header = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string>("All");
+
+  const dispatch = useAppDispatch();
 
   useEffect(() => {
     setHydrated(true);
@@ -42,15 +49,22 @@ const Header = () => {
       const storedUser = localStorage.getItem("user");
       if (storedUser) {
         const parsedUser = JSON.parse(storedUser);
-        // const userName = parsedUser?.user?.userName || "User";
         const userName = parsedUser?.userName || "User";
-
         setLocalUserName(userName);
       }
     } catch (err) {
       console.error("Lỗi khi lấy user từ localStorage:", err);
     }
   }, []);
+
+  // 👉 fetch restaurants khi chọn category
+  useEffect(() => {
+    if (selectedCategory === "All") {
+      dispatch(fetchRestaurants());
+    } else {
+      dispatch(fetchRestaurantsByCategory(selectedCategory));
+    }
+  }, [selectedCategory, dispatch]);
 
   const handleLogout = () => {
     document.cookie = "token=; path=/; max-age=0";
@@ -122,11 +136,13 @@ const Header = () => {
 
           <TextField
             select
-            defaultValue="Buffet"
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
             size="small"
             variant="standard"
-            sx={{ minWidth: 160 }}
+            sx={{ minWidth: 180 }}
           >
+            <MenuItem value="All">Ăn uống</MenuItem>
             <MenuItem value="Buffet">Buffet</MenuItem>
             <MenuItem value="NhaHang">Nhà Hàng</MenuItem>
             <MenuItem value="AnVatViaHe">Ăn vặt/vỉa hè</MenuItem>

@@ -23,6 +23,7 @@ import dayjs from "dayjs";
 import { useAppDispatch, useAppSelector } from "@/redux/hook";
 import { createRestaurant } from "@/redux/slices/restaurantSlice";
 
+
 const MapView = dynamic(() => import("@/components/layouts/MapView"), {
   ssr: false,
 });
@@ -158,9 +159,10 @@ const RestaurantCreatePage = () => {
               name="address"
               value={form.address}
               onChange={handleAddressChange}
-              margin="normal"
+              margin="normal" 
               required
             />
+       
 
             {mounted && (
               <Box mt={2}>

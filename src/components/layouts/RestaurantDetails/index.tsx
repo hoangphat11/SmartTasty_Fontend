@@ -74,21 +74,60 @@ const RestaurantDetailPage = () => {
 
         <Box flex={1}>
           <Typography variant="h4">{restaurant.name}</Typography>
+
+          {/* Mô tả nhà hàng */}
+          {restaurant.description && (
+            <Typography>
+              <strong>Mô tả:</strong>
+              {restaurant.description}
+            </Typography>
+          )}
+
           <Typography>
             <strong>Địa chỉ:</strong> {restaurant.address}
           </Typography>
+          {/* Kiểm tra trạng thái mở cửa */}
+          <Typography>
+            <strong>Trạng thái:</strong>{" "}
+            {(() => {
+              const now = new Date();
+              const [openHour, openMinute] = restaurant.openTime
+                .split(":")
+                .map(Number);
+              const [closeHour, closeMinute] = restaurant.closeTime
+                .split(":")
+                .map(Number);
+
+              const openDate = new Date(now);
+              openDate.setHours(openHour, openMinute, 0, 0);
+
+              const closeDate = new Date(now);
+              closeDate.setHours(closeHour, closeMinute, 0, 0);
+
+              // Nếu giờ đóng nhỏ hơn giờ mở (ví dụ: 22:00 - 02:00), tăng ngày cho giờ đóng
+              if (closeDate <= openDate)
+                closeDate.setDate(closeDate.getDate() + 1);
+
+              return now >= openDate && now <= closeDate ? (
+                <span style={{ color: "green" }}>Đang mở cửa</span>
+              ) : (
+                <span style={{ color: "red" }}>Đóng cửa</span>
+              );
+            })()}
+          </Typography>
+
           <Typography>
             <strong>Giờ hoạt động:</strong> {restaurant.openTime} -{" "}
             {restaurant.closeTime}
           </Typography>
-          <Button
+          {/* <Button
             variant="contained"
             color="primary"
             sx={{ mt: 2 }}
             onClick={() => alert("Chức năng đặt chỗ")}
           >
             Đặt chỗ ngay
-          </Button>
+          </Button> */}
         </Box>
       </Paper>
 

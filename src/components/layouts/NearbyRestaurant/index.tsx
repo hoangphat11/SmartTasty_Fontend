@@ -15,6 +15,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  ButtonBase,
 } from "@mui/material";
 import { useAppDispatch, useAppSelector } from "@/redux/hook";
 import { fetchNearbyRestaurants } from "@/redux/slices/restaurantSlice";
@@ -153,7 +154,11 @@ const NearbyRestaurantsPage = () => {
                     variant="subtitle1"
                     fontWeight="bold"
                     gutterBottom
+                    noWrap
                     title={restaurant.name}
+                    component={ButtonBase} // biến Typography thành clickable
+                    onClick={() => router.push(`/RestaurantDetails/${restaurant.id}`)}
+                   
                   >
                     {restaurant.name}
                   </Typography>

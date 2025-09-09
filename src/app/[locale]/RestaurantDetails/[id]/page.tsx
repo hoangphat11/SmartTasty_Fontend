@@ -1,12 +1,12 @@
 import React from "react";
-import Restaurants from "@/screens/Restaurants";
+import RestaurantDetails from "@/screens/RestaurantDetails";
 import Menu from "@/components/layouts/Menu";
 
 const page = () => {
   return (
     <>
       <Menu />
-      <Restaurants />
+      <RestaurantDetails />
     </>
   );
 };

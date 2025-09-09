@@ -1,31 +1,13 @@
+// src/redux/slices/restaurantSlice.ts
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import axiosInstance from "@/lib/axios/axiosInstance";
-import { RestaurantForm } from "@/types/restaurant";
+import {
+  Restaurant,
+  RestaurantForm,
+  RestaurantState,
+} from "@/types/restaurant";
 
-interface Restaurant {
-  id: number;
-  name: string;
-  category: string;
-  address: string;
-  description: string;
-  openTime: string;
-  closeTime: string;
-  latitude: number;
-  longitude: number;
-  imageUrl: string;
-  ownerId: number;
-  distanceKm?: number; // 👈 thêm để hiển thị khoảng cách
-}
-
-interface RestaurantState {
-  restaurants: Restaurant[];
-  current: Restaurant | null;
-  nearby: Restaurant[]; // 👈 danh sách gần nhất
-  loading: boolean;
-  loadingNearby: boolean; // 👈 spinner cho nearby
-  error: string | null;
-}
-
+//INITIAL STATE 
 const initialState: RestaurantState = {
   restaurants: [],
   current: null,
@@ -33,9 +15,12 @@ const initialState: RestaurantState = {
   loading: false,
   loadingNearby: false,
   error: null,
+   
 };
 
-// ➕ FETCH BY OWNER
+//ASYNC THUNKS
+
+// Fetch by owner
 export const fetchRestaurantByOwner = createAsyncThunk<
   Restaurant | null,
   { token: string },
@@ -45,18 +30,30 @@ export const fetchRestaurantByOwner = createAsyncThunk<
     const response = await axiosInstance.get("/api/Restaurant/owner", {
       headers: { Authorization: `Bearer ${token}` },
     });
-
     const apiData = response.data?.data;
-    const restaurant =
-      Array.isArray(apiData) && apiData.length > 0 ? apiData[0] : null;
-
-    return restaurant;
+    return Array.isArray(apiData) && apiData.length > 0 ? apiData[0] : null;
   } catch (err: any) {
     return rejectWithValue(err.response?.data?.message || "Lỗi không xác định");
   }
 });
 
-// CREATE
+// Fetch by category
+export const fetchRestaurantsByCategory = createAsyncThunk<
+  Restaurant[],
+  string,
+  { rejectValue: string }
+>("restaurant/fetchByCategory", async (category, { rejectWithValue }) => {
+  try {
+    const res = await axiosInstance.get(`/api/Restaurant/category/${category}`);
+    return res.data?.data ?? [];
+  } catch (err: any) {
+    return rejectWithValue(
+      err.response?.data?.errMessage || "Không tìm được nhà hàng theo danh mục"
+    );
+  }
+});
+
+// Create
 export const createRestaurant = createAsyncThunk<
   Restaurant | null,
   { token: string; data: RestaurantForm },
@@ -72,9 +69,7 @@ export const createRestaurant = createAsyncThunk<
     formData.append("description", data.description);
     formData.append("openTime", data.openTime);
     formData.append("closeTime", data.closeTime);
-    if (data.file) {
-      formData.append("ImageFile", data.file);
-    }
+    if (data.file) formData.append("ImageFile", data.file);
 
     const res = await axiosInstance.post("/api/Restaurant", formData, {
       headers: { Authorization: `Bearer ${token}` },
@@ -86,7 +81,7 @@ export const createRestaurant = createAsyncThunk<
   }
 });
 
-// READ ALL
+// Fetch all
 export const fetchRestaurants = createAsyncThunk<
   Restaurant[],
   void,
@@ -100,7 +95,7 @@ export const fetchRestaurants = createAsyncThunk<
   }
 });
 
-// ➕ FETCH NEARBY
+// Fetch nearby
 export const fetchNearbyRestaurants = createAsyncThunk<
   Restaurant[],
   { lat: number; lng: number },
@@ -117,7 +112,8 @@ export const fetchNearbyRestaurants = createAsyncThunk<
     );
   }
 });
-// FETCH BY ID
+
+// Fetch by id
 export const fetchRestaurantById = createAsyncThunk<
   Restaurant | null,
   number,
@@ -133,7 +129,7 @@ export const fetchRestaurantById = createAsyncThunk<
   }
 });
 
-// UPDATE
+// Update
 export const updateRestaurant = createAsyncThunk<
   Restaurant | null,
   { token: string; id: number; data: RestaurantForm },
@@ -141,8 +137,6 @@ export const updateRestaurant = createAsyncThunk<
 >("restaurant/update", async ({ token, id, data }, { rejectWithValue }) => {
   try {
     const formData = new FormData();
-
-    // bắt buộc
     formData.append("id", id.toString());
     formData.append("name", data.name);
     formData.append("category", data.category);
@@ -153,11 +147,7 @@ export const updateRestaurant = createAsyncThunk<
     formData.append("openTime", data.openTime);
     formData.append("closeTime", data.closeTime);
     formData.append("isHidden", "false");
-
-    // chỉ append file nếu có
-    if (data.file instanceof File) {
-      formData.append("ImageFile", data.file);
-    }
+    if (data.file instanceof File) formData.append("ImageFile", data.file);
 
     const response = await axiosInstance.put(`/api/Restaurant`, formData, {
       headers: { Authorization: `Bearer ${token}` },
@@ -165,13 +155,11 @@ export const updateRestaurant = createAsyncThunk<
 
     return response.data?.data ?? null;
   } catch (err: any) {
-    return rejectWithValue(
-      err.response?.data?.errMessage || "Cập nhật thất bại"
-    );
+    return rejectWithValue(err.response?.data?.errMessage || "Cập nhật thất bại");
   }
 });
 
-// DELETE
+// Delete
 export const deleteRestaurant = createAsyncThunk<
   number,
   { token: string; id: number },
@@ -187,6 +175,7 @@ export const deleteRestaurant = createAsyncThunk<
   }
 });
 
+/* -------------------- SLICE -------------------- */
 const restaurantSlice = createSlice({
   name: "restaurant",
   initialState,
@@ -197,161 +186,131 @@ const restaurantSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // FETCH BY OWNER
+      // fetchByOwner
       .addCase(fetchRestaurantByOwner.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(
-        fetchRestaurantByOwner.fulfilled,
-        (state, action: PayloadAction<Restaurant | null>) => {
-          state.loading = false;
-          state.current = action.payload;
-        }
-      )
-      .addCase(
-        fetchRestaurantByOwner.rejected,
-        (state, action: PayloadAction<string | undefined>) => {
-          state.loading = false;
-          state.error = action.payload || "Lỗi không xác định";
-          state.current = null;
-        }
-      )
+      .addCase(fetchRestaurantByOwner.fulfilled, (state, action) => {
+        state.loading = false;
+        state.current = action.payload;
+      })
+      .addCase(fetchRestaurantByOwner.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || "Lỗi không xác định";
+        state.current = null;
+      })
 
-      // CREATE
+      // create
       .addCase(createRestaurant.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(
-        createRestaurant.fulfilled,
-        (state, action: PayloadAction<Restaurant | null>) => {
-          state.loading = false;
-          if (action.payload) {
-            state.restaurants.push(action.payload);
-            state.current = action.payload;
-          }
+      .addCase(createRestaurant.fulfilled, (state, action) => {
+        state.loading = false;
+        if (action.payload) {
+          state.restaurants.push(action.payload);
+          state.current = action.payload;
         }
-      )
-      .addCase(
-        createRestaurant.rejected,
-        (state, action: PayloadAction<string | undefined>) => {
-          state.loading = false;
-          state.error = action.payload || "Lỗi không xác định";
-        }
-      )
+      })
+      .addCase(createRestaurant.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || "Lỗi không xác định";
+      })
 
-      // READ ALL
+      // fetchAll
       .addCase(fetchRestaurants.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(
-        fetchRestaurants.fulfilled,
-        (state, action: PayloadAction<Restaurant[]>) => {
-          state.loading = false;
-          state.restaurants = action.payload;
-        }
-      )
-      .addCase(
-        fetchRestaurants.rejected,
-        (state, action: PayloadAction<string | undefined>) => {
-          state.loading = false;
-          state.error = action.payload || "Lỗi không xác định";
-        }
-      )
+      .addCase(fetchRestaurants.fulfilled, (state, action) => {
+        state.loading = false;
+        state.restaurants = action.payload;
+      })
+      .addCase(fetchRestaurants.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || "Lỗi không xác định";
+      })
 
-      // ➕ NEARBY
+      // nearby
       .addCase(fetchNearbyRestaurants.pending, (state) => {
         state.loadingNearby = true;
         state.error = null;
       })
-      .addCase(
-        fetchNearbyRestaurants.fulfilled,
-        (state, action: PayloadAction<Restaurant[]>) => {
-          state.loadingNearby = false;
-          state.nearby = action.payload;
-        }
-      )
-      .addCase(
-        fetchNearbyRestaurants.rejected,
-        (state, action: PayloadAction<string | undefined>) => {
-          state.loadingNearby = false;
-          state.error = action.payload || "Không lấy được nhà hàng gần bạn";
-        }
-      )
-      // FETCH BY ID
+      .addCase(fetchNearbyRestaurants.fulfilled, (state, action) => {
+        state.loadingNearby = false;
+        state.nearby = action.payload;
+      })
+      .addCase(fetchNearbyRestaurants.rejected, (state, action) => {
+        state.loadingNearby = false;
+        state.error = action.payload || "Không lấy được nhà hàng gần bạn";
+      })
+
+      // fetchByCategory
+      .addCase(fetchRestaurantsByCategory.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchRestaurantsByCategory.fulfilled, (state, action) => {
+        state.loading = false;
+        state.restaurants = action.payload;
+      })
+      .addCase(fetchRestaurantsByCategory.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || "Không tìm được nhà hàng theo danh mục";
+      })
+
+      // fetchById
       .addCase(fetchRestaurantById.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(
-        fetchRestaurantById.fulfilled,
-        (state, action: PayloadAction<Restaurant | null>) => {
-          state.loading = false;
-          state.current = action.payload;
-        }
-      )
-      .addCase(
-        fetchRestaurantById.rejected,
-        (state, action: PayloadAction<string | undefined>) => {
-          state.loading = false;
-          state.error = action.payload || "Lỗi không xác định";
-          state.current = null;
-        }
-      )
-      // UPDATE
+      .addCase(fetchRestaurantById.fulfilled, (state, action) => {
+        state.loading = false;
+        state.current = action.payload;
+      })
+      .addCase(fetchRestaurantById.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || "Lỗi không xác định";
+        state.current = null;
+      })
+
+      // update
       .addCase(updateRestaurant.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(
-        updateRestaurant.fulfilled,
-        (state, action: PayloadAction<Restaurant | null>) => {
-          state.loading = false;
-          if (action.payload) {
-            state.current = action.payload;
-            const index = state.restaurants.findIndex(
-              (r) => r.id === action.payload!.id
-            );
-            if (index !== -1) {
-              state.restaurants[index] = action.payload;
-            }
-          }
+      .addCase(updateRestaurant.fulfilled, (state, action) => {
+        state.loading = false;
+        if (action.payload) {
+          state.current = action.payload;
+          const index = state.restaurants.findIndex(
+            (r) => r.id === action.payload!.id
+          );
+          if (index !== -1) state.restaurants[index] = action.payload;
         }
-      )
-      .addCase(
-        updateRestaurant.rejected,
-        (state, action: PayloadAction<string | undefined>) => {
-          state.loading = false;
-          state.error = action.payload || "Lỗi không xác định";
-        }
-      )
+      })
+      .addCase(updateRestaurant.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || "Lỗi không xác định";
+      })
 
-      // DELETE
+      // delete
       .addCase(deleteRestaurant.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(
-        deleteRestaurant.fulfilled,
-        (state, action: PayloadAction<number>) => {
-          state.loading = false;
-          state.restaurants = state.restaurants.filter(
-            (r) => r.id !== action.payload
-          );
-          if (state.current?.id === action.payload) {
-            state.current = null;
-          }
-        }
-      )
-      .addCase(
-        deleteRestaurant.rejected,
-        (state, action: PayloadAction<string | undefined>) => {
-          state.loading = false;
-          state.error = action.payload || "Lỗi không xác định";
-        }
-      );
+      .addCase(deleteRestaurant.fulfilled, (state, action) => {
+        state.loading = false;
+        state.restaurants = state.restaurants.filter(
+          (r) => r.id !== action.payload
+        );
+        if (state.current?.id === action.payload) state.current = null;
+      })
+      .addCase(deleteRestaurant.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || "Lỗi không xác định";
+      });
   },
 });
 
