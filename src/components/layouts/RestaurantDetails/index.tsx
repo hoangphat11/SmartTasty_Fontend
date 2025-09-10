@@ -67,7 +67,7 @@ const RestaurantDetailPage = () => {
               width: 300,
               height: 200,
               objectFit: "cover",
-              borderRadius: 8,
+              borderRadius: 8,  
             }}
           />
         </Box>

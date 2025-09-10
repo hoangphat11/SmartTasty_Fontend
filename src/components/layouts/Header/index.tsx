@@ -23,6 +23,7 @@ import {
 import { getImageUrl } from "@/constants/config/imageBaseUrl";
 import LanguageSelector from "@/components/layouts/LanguageSelector";
 import ThemeToggleButton from "@/components/layouts/ThemeToggleButton";
+import styles from "./styles.module.scss";
 
 const getCookie = (name: string): string | null => {
   if (typeof document === "undefined") return null;
@@ -57,7 +58,6 @@ const Header = () => {
     }
   }, []);
 
-  // 👉 fetch restaurants khi chọn category
   useEffect(() => {
     if (selectedCategory === "All") {
       dispatch(fetchRestaurants());
@@ -88,22 +88,12 @@ const Header = () => {
   if (!hydrated) return null;
 
   return (
-    <Box sx={{ p: 2, bgcolor: "background.paper", boxShadow: 1 }}>
-      <Box
-        sx={{
-          maxWidth: "1200px",
-          mx: "auto",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          flexWrap: "wrap",
-          gap: 2,
-        }}
-      >
+    <Box className={styles.headerWrapper}>
+      <Box className={styles.headerInner}>
         {/* Left: Logo */}
         <Link href="/">
           <Image
-            src={getImageUrl("Logo/anhdaidien.png")}
+            src={getImageUrl("Logo/anhdaidienmoi.png")}
             alt="Logo"
             width={64}
             height={40}
@@ -112,22 +102,13 @@ const Header = () => {
         </Link>
 
         {/* Middle: Filter + Search */}
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            flexWrap: "wrap",
-            gap: 2,
-            flex: 1,
-            justifyContent: "center",
-          }}
-        >
+        <Box className={styles.searchSection}>
           <TextField
             select
             defaultValue="TP. HCM"
             size="small"
             variant="standard"
-            sx={{ minWidth: 120 }}
+            className={styles.citySelect}
           >
             <MenuItem value="TP. HCM">TP. HCM</MenuItem>
             <MenuItem value="HN">Hà Nội</MenuItem>
@@ -140,7 +121,7 @@ const Header = () => {
             onChange={(e) => setSelectedCategory(e.target.value)}
             size="small"
             variant="standard"
-            sx={{ minWidth: 180 }}
+            className={styles.categorySelect}
           >
             <MenuItem value="All">Ăn uống</MenuItem>
             <MenuItem value="Buffet">Buffet</MenuItem>
@@ -160,12 +141,12 @@ const Header = () => {
             InputProps={{
               endAdornment: <SearchIcon />,
             }}
-            sx={{ width: 300, maxWidth: "100%" }}
+            className={styles.searchInput}
           />
         </Box>
 
         {/* Right: Auth, Notification, Language, Theme */}
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+        <Box className={styles.rightSection}>
           {isLoggedIn ? (
             <>
               <IconButton onClick={handlePopoverOpen}>
@@ -180,7 +161,7 @@ const Header = () => {
                   horizontal: "right",
                 }}
               >
-                <Box sx={{ p: 2, minWidth: 200 }}>
+                <Box className={styles.popoverBox}>
                   <Typography fontWeight={600} mb={1}>
                     Xin chào, {localUserName}
                   </Typography>
